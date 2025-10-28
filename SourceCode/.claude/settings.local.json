@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node:*)",
+      "Bash(python:*)",
+      "Read(//d/AI/from my laptop/837/**)",
+      "Bash(dir:*)",
+      "Bash(psql:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(taskkill:*)",
+      "Bash(pip install:*)",
+      "Bash(npm install:*)",
+      "Bash(curl:*)",
+      "Bash(for file in ./2f66f782-77e3-433f-9e27-861b9714a0b1.txt ./80048570-c772-43e6-92c8-6cd4a312d411.txt)",
+      "Bash(do echo \"=== $file ===\")",
+      "Bash(done)",
+      "Bash(cat:*)",
+      "Bash(npm run dev:*)",
+      "Bash(npx tsc:*)",
+      "Bash(tasklist)",
+      "Bash(del:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

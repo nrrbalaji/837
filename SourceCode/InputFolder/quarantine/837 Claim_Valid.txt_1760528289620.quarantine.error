@@ -1,0 +1,7 @@
+{
+  "original_file": "837 Claim_Valid.txt",
+  "failed_at": "2025-10-15T11:38:09.620Z",
+  "facility_id": "963c94c9-59cb-4b76-9616-068cdb45cf80",
+  "ingestion_mode": "LOCAL_FOLDER",
+  "error_message": "validationRules is not defined"
+}

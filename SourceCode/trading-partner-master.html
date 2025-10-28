@@ -1,0 +1,2196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Partner Master - Healthcare RCM</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #0891b2;
+            --primary-dark: #0e7490;
+            --primary-light: #06b6d4;
+            --accent-color: #0d9488;
+            --bg-color: #f0f9ff;
+            --card-bg: #ffffff;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            line-height: 1.6;
+            display: flex;
+        }
+
+        /* Sidebar Menu */
+        .sidebar {
+            width: 260px;
+            background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+            min-height: 100vh;
+            padding: 0;
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-header {
+            padding: 24px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: white;
+            text-decoration: none;
+        }
+
+        .sidebar-logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .sidebar-logo-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-logo-title {
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .sidebar-logo-subtitle {
+            font-size: 11px;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        .sidebar-nav {
+            padding: 16px 0;
+        }
+
+        .nav-section {
+            margin-bottom: 24px;
+        }
+
+        .nav-section-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 8px 20px;
+            margin-bottom: 4px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            color: #cbd5e1;
+            text-decoration: none;
+            transition: all 0.2s;
+            font-size: 14px;
+            font-weight: 500;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: white;
+        }
+
+        .nav-item.active {
+            background-color: rgba(8, 145, 178, 0.15);
+            color: white;
+            border-left-color: var(--primary-light);
+        }
+
+        .nav-item-icon {
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .nav-badge {
+            margin-left: auto;
+            background-color: var(--danger-color);
+            color: white;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+
+        .sidebar-footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: white;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .user-details {
+            flex: 1;
+        }
+
+        .user-name {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .user-role {
+            font-size: 11px;
+            color: #94a3b8;
+        }
+
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 101;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 20px;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .sidebar-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 99;
+            backdrop-filter: blur(2px);
+        }
+
+        .sidebar-backdrop.show {
+            display: block;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 260px;
+            width: calc(100% - 260px);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
+            color: white;
+            padding: 24px 32px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background-color: white;
+            color: var(--primary-color);
+        }
+
+        .btn-primary:hover {
+            background-color: #f0f9ff;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-secondary {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #059669;
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #dc2626;
+        }
+
+        .btn-icon {
+            padding: 8px 12px;
+        }
+
+        /* Search & Filter Panel */
+        .filter-panel {
+            background: var(--card-bg);
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+        }
+
+        .filter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .filter-header h2 {
+            font-size: 18px;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .filter-toggle {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .form-control {
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+            background-color: white;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.1);
+        }
+
+        /* Table Card */
+        .table-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .table-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .table-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .table-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background-color: #f8fafc;
+        }
+
+        th {
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid var(--border-color);
+            white-space: nowrap;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        th:hover {
+            background-color: #f1f5f9;
+        }
+
+        th.sortable::after {
+            content: ' ⇅';
+            opacity: 0.3;
+        }
+
+        th.sort-asc::after {
+            content: ' ↑';
+            opacity: 1;
+            color: var(--primary-color);
+        }
+
+        th.sort-desc::after {
+            content: ' ↓';
+            opacity: 1;
+            color: var(--primary-color);
+        }
+
+        td {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
+        }
+
+        tbody tr {
+            transition: background-color 0.2s;
+        }
+
+        tbody tr:hover {
+            background-color: #f8fafc;
+        }
+
+        /* Status Badge */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            gap: 4px;
+        }
+
+        .badge-active {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-inactive {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .badge-inbound {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+
+        .badge-outbound {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-both {
+            background-color: #e0e7ff;
+            color: #3730a3;
+        }
+
+        .badge-sender {
+            background-color: #fbcfe8;
+            color: #831843;
+        }
+
+        .badge-receiver {
+            background-color: #ddd6fe;
+            color: #5b21b6;
+        }
+
+        /* Action Buttons in Table */
+        .action-btns {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 13px;
+            border-radius: 6px;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            border-top: 1px solid var(--border-color);
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .pagination-info {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .pagination-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .page-btn {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            background-color: var(--primary-light);
+            color: white;
+            border-color: var(--primary-light);
+        }
+
+        .page-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+            animation: fadeIn 0.2s;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal {
+            background: var(--card-bg);
+            border-radius: 12px;
+            width: 100%;
+            max-width: 900px;
+            max-height: 90vh;
+            overflow: hidden;
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.2);
+            animation: slideUp 0.3s;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .close-btn:hover {
+            background-color: #f1f5f9;
+            color: var(--text-primary);
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            background-color: #f8fafc;
+            padding: 0 24px;
+        }
+
+        .tab {
+            padding: 14px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+            position: relative;
+            top: 1px;
+        }
+
+        .tab:hover {
+            color: var(--primary-color);
+        }
+
+        .tab.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        .tab-content {
+            display: none;
+            padding: 24px;
+            max-height: 50vh;
+            overflow-y: auto;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .form-group-full {
+            grid-column: 1 / -1;
+        }
+
+        textarea.form-control {
+            min-height: 100px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .toggle {
+            position: relative;
+            width: 48px;
+            height: 24px;
+            background-color: #cbd5e1;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .toggle.active {
+            background-color: var(--primary-color);
+        }
+
+        .toggle::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background-color: white;
+            border-radius: 50%;
+            transition: transform 0.2s;
+        }
+
+        .toggle.active::after {
+            transform: translateX(24px);
+        }
+
+        .modal-footer {
+            padding: 20px 24px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            background-color: #f8fafc;
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .toast {
+            background: white;
+            padding: 16px 20px;
+            border-radius: 8px;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 300px;
+            max-width: 400px;
+            border-left: 4px solid;
+            animation: slideIn 0.3s;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast.success {
+            border-left-color: var(--success-color);
+        }
+
+        .toast.error {
+            border-left-color: var(--danger-color);
+        }
+
+        .toast.warning {
+            border-left-color: var(--warning-color);
+        }
+
+        .toast.info {
+            border-left-color: var(--primary-color);
+        }
+
+        .toast-icon {
+            font-size: 20px;
+        }
+
+        .toast-content {
+            flex: 1;
+        }
+
+        .toast-title {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+
+        .toast-message {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .toast-close {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            color: var(--text-secondary);
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+        }
+
+        .toast-close:hover {
+            background-color: #f1f5f9;
+        }
+
+        /* Validation Messages */
+        .validation-message {
+            font-size: 13px;
+            color: var(--danger-color);
+            margin-top: 4px;
+            display: none;
+        }
+
+        .validation-message.show {
+            display: block;
+        }
+
+        .form-control.error {
+            border-color: var(--danger-color);
+        }
+
+        .warning-box {
+            background-color: #fef3c7;
+            border: 1px solid #fbbf24;
+            border-radius: 8px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: start;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .warning-box-icon {
+            color: #f59e0b;
+            font-size: 20px;
+        }
+
+        .warning-box-content {
+            flex: 1;
+        }
+
+        .warning-box-title {
+            font-weight: 600;
+            font-size: 14px;
+            color: #92400e;
+            margin-bottom: 4px;
+        }
+
+        .warning-box-message {
+            font-size: 13px;
+            color: #78350f;
+        }
+
+        /* Audit Trail */
+        .audit-item {
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+
+        .audit-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 8px;
+        }
+
+        .audit-user {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .audit-date {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .audit-action {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .header-actions {
+                width: 100%;
+            }
+
+            .filter-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+                z-index: 100;
+            }
+
+            .menu-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 12px;
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 22px;
+            }
+
+            .btn {
+                padding: 8px 16px;
+                font-size: 13px;
+            }
+
+            .table-container {
+                font-size: 13px;
+            }
+
+            th, td {
+                padding: 10px;
+            }
+
+            .modal {
+                max-width: 100%;
+                margin: 10px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .toast {
+                min-width: auto;
+                max-width: calc(100vw - 40px);
+            }
+        }
+
+        /* Icon Placeholders */
+        .icon {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Loading State */
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f4f6;
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-state-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .empty-state-message {
+            font-size: 14px;
+        }
+
+        /* Info Box */
+        .info-box {
+            background-color: #dbeafe;
+            border: 1px solid #3b82f6;
+            border-radius: 8px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: start;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .info-box-icon {
+            color: #2563eb;
+            font-size: 20px;
+        }
+
+        .info-box-content {
+            flex: 1;
+            font-size: 13px;
+            color: #1e40af;
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Menu Toggle -->
+    <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+
+    <!-- Sidebar Backdrop (Mobile) -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleMenu()"></div>
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <a href="#" class="sidebar-logo">
+                <div class="sidebar-logo-icon">🏥</div>
+                <div class="sidebar-logo-text">
+                    <div class="sidebar-logo-title">Healthcare RCM</div>
+                    <div class="sidebar-logo-subtitle">Revenue Cycle Mgmt</div>
+                </div>
+            </a>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Dashboard</div>
+                <a href="#" class="nav-item">
+                    <span class="nav-item-icon">📊</span>
+                    <span>Overview</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <span class="nav-item-icon">📈</span>
+                    <span>Analytics</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Claims Management</div>
+                <a href="#" class="nav-item">
+                    <span class="nav-item-icon">📋</span>
+                    <span>All Claims</span>
+                    <span class="nav-badge">24</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <span class="nav-item-icon">📝</span>
+                    <span>837 Files</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <span class="nav-item-icon">✅</span>
+                    <span>Acknowledgments</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <span class="nav-item-icon">⚠️</span>
+                    <span>Rejections</span>
+                    <span class="nav-badge">7</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">EDI Configuration</div>
+                <a href="#" class="nav-item active">
+                    <span class="nav-item-icon">🔄</span>
+                    <span>Trading Partners</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <span class="nav-item-icon">📡</span>
+                    <span>Clearinghouses</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <span class="nav-item-icon">🏢</span>
+                    <span>Payers</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <span class="nav-item-icon">🔐</span>
+                    <span>Credentials</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">System</div>
+                <a href="#" class="nav-item">
+                    <span class="nav-item-icon">⚙️</span>
+                    <span>Settings</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <span class="nav-item-icon">📜</span>
+                    <span>Audit Logs</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <span class="nav-item-icon">👥</span>
+                    <span>User Management</span>
+                </a>
+            </div>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar">JD</div>
+                <div class="user-details">
+                    <div class="user-name">John Doe</div>
+                    <div class="user-role">RCM Administrator</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container">
+            <!-- Header -->
+            <div class="header">
+            <div class="header-content">
+                <h1>
+                    <span>📊</span>
+                    Trading Partner Master
+                </h1>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="openAddModal()">
+                        <span>➕</span> Add New Trading Partner
+                    </button>
+                    <button class="btn btn-secondary" onclick="syncFromClearinghouse()">
+                        <span>🔄</span> Sync from Clearinghouse
+                    </button>
+                    <button class="btn btn-secondary" onclick="exportConfigurations()">
+                        <span>📤</span> Export Configurations
+                    </button>
+                    <button class="btn btn-secondary" onclick="refreshConnections()">
+                        <span>🔌</span> Refresh Connections
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search & Filter Panel -->
+        <div class="filter-panel">
+            <div class="filter-header">
+                <h2>🔍 Search & Filter</h2>
+                <button class="filter-toggle" onclick="toggleFilters()">
+                    <span id="filterToggleText">Collapse</span>
+                </button>
+            </div>
+            <div class="filter-grid" id="filterGrid">
+                <div class="form-group">
+                    <label>Partner Name</label>
+                    <input type="text" class="form-control" id="filterPartnerName" placeholder="Search by name...">
+                </div>
+                <div class="form-group">
+                    <label>Sender ID (ISA06)</label>
+                    <input type="text" class="form-control" id="filterSenderId" placeholder="e.g., EHRSENDER123">
+                </div>
+                <div class="form-group">
+                    <label>Receiver ID (ISA08)</label>
+                    <input type="text" class="form-control" id="filterReceiverId" placeholder="e.g., PAYERREC456">
+                </div>
+                <div class="form-group">
+                    <label>Qualifier</label>
+                    <select class="form-control" id="filterQualifier">
+                        <option value="">All Qualifiers</option>
+                        <option value="ZZ">ZZ - Mutually Defined</option>
+                        <option value="30">30 - U.S. Federal Tax ID</option>
+                        <option value="33">33 - National Association of Insurance</option>
+                        <option value="01">01 - Duns Number</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Direction</label>
+                    <select class="form-control" id="filterDirection">
+                        <option value="">All Directions</option>
+                        <option value="inbound">Inbound</option>
+                        <option value="outbound">Outbound</option>
+                        <option value="both">Both</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select class="form-control" id="filterStatus">
+                        <option value="">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                </div>
+            </div>
+            <div style="margin-top: 16px; display: flex; gap: 12px; justify-content: flex-end;">
+                <button class="btn btn-secondary btn-sm" onclick="clearFilters()">Clear Filters</button>
+                <button class="btn btn-success btn-sm" onclick="applyFilters()">Apply Filters</button>
+            </div>
+        </div>
+
+        <!-- Table Card -->
+        <div class="table-card">
+            <div class="table-header">
+                <div class="table-title">
+                    Trading Partners (<span id="recordCount">0</span> records)
+                </div>
+                <div class="table-actions">
+                    <button class="btn btn-secondary btn-sm" onclick="exportTable()">
+                        <span>📥</span> Export Table
+                    </button>
+                </div>
+            </div>
+            <div class="table-container">
+                <table id="tradingPartnerTable">
+                    <thead>
+                        <tr>
+                            <th class="sortable" onclick="sortTable('partnerName')">Partner Name</th>
+                            <th class="sortable" onclick="sortTable('partnerType')">Partner Type</th>
+                            <th class="sortable" onclick="sortTable('qualifier')">Qualifier</th>
+                            <th class="sortable" onclick="sortTable('senderId')">Sender ID</th>
+                            <th class="sortable" onclick="sortTable('receiverId')">Receiver ID</th>
+                            <th class="sortable" onclick="sortTable('direction')">Direction</th>
+                            <th class="sortable" onclick="sortTable('defaultPayer')">Default Payer</th>
+                            <th class="sortable" onclick="sortTable('channel')">Channel</th>
+                            <th class="sortable" onclick="sortTable('status')">Status</th>
+                            <th class="sortable" onclick="sortTable('effectiveDates')">Effective Dates</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Data will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="pagination">
+                <div class="pagination-info">
+                    Showing <span id="showingStart">0</span> to <span id="showingEnd">0</span> of <span id="totalRecords">0</span> entries
+                </div>
+                <div class="pagination-controls">
+                    <button class="page-btn" onclick="changePage('first')" id="firstPageBtn">First</button>
+                    <button class="page-btn" onclick="changePage('prev')" id="prevPageBtn">Previous</button>
+                    <button class="page-btn active">1</button>
+                    <button class="page-btn" onclick="changePage('next')" id="nextPageBtn">Next</button>
+                    <button class="page-btn" onclick="changePage('last')" id="lastPageBtn">Last</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Trading Partner Modal -->
+    <div class="modal-overlay" id="partnerModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="modalTitle">Add New Trading Partner</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('general')">General Info</button>
+                <button class="tab" onclick="switchTab('communication')">Communication Channel</button>
+                <button class="tab" onclick="switchTab('contact')">Contact Info</button>
+                <button class="tab" onclick="switchTab('audit')">Audit</button>
+            </div>
+
+            <!-- Tab: General Info -->
+            <div class="tab-content active" id="tab-general">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Partner Name <span style="color: red;">*</span></label>
+                        <input type="text" class="form-control" id="partnerName" placeholder="e.g., BlueCross BlueShield">
+                        <div class="validation-message" id="partnerNameError">Partner name is required</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Partner Type <span style="color: red;">*</span></label>
+                        <select class="form-control" id="partnerType">
+                            <option value="">Select Type</option>
+                            <option value="sender">Sender (EHR)</option>
+                            <option value="receiver">Receiver (Payer/Clearinghouse)</option>
+                            <option value="both">Both</option>
+                        </select>
+                        <div class="validation-message" id="partnerTypeError">Partner type is required</div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>ISA05 Qualifier (Sender) <span style="color: red;">*</span></label>
+                        <select class="form-control" id="isa05Qualifier">
+                            <option value="">Select Qualifier</option>
+                            <option value="ZZ">ZZ - Mutually Defined</option>
+                            <option value="30">30 - U.S. Federal Tax ID</option>
+                            <option value="33">33 - National Association of Insurance</option>
+                            <option value="01">01 - Duns Number</option>
+                        </select>
+                        <div class="validation-message" id="isa05Error">ISA05 qualifier is required</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Sender ID (ISA06) <span style="color: red;">*</span></label>
+                        <input type="text" class="form-control" id="senderId" placeholder="e.g., EHRSENDER123" maxlength="15">
+                        <div class="validation-message" id="senderIdError">Sender ID is required (max 15 chars)</div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>ISA07 Qualifier (Receiver) <span style="color: red;">*</span></label>
+                        <select class="form-control" id="isa07Qualifier">
+                            <option value="">Select Qualifier</option>
+                            <option value="ZZ">ZZ - Mutually Defined</option>
+                            <option value="30">30 - U.S. Federal Tax ID</option>
+                            <option value="33">33 - National Association of Insurance</option>
+                            <option value="01">01 - Duns Number</option>
+                        </select>
+                        <div class="validation-message" id="isa07Error">ISA07 qualifier is required</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Receiver ID (ISA08) <span style="color: red;">*</span></label>
+                        <input type="text" class="form-control" id="receiverId" placeholder="e.g., PAYERREC456" maxlength="15">
+                        <div class="validation-message" id="receiverIdError">Receiver ID is required (max 15 chars)</div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Direction <span style="color: red;">*</span></label>
+                        <select class="form-control" id="direction">
+                            <option value="">Select Direction</option>
+                            <option value="inbound">Inbound</option>
+                            <option value="outbound">Outbound</option>
+                            <option value="both">Both</option>
+                        </select>
+                        <div class="validation-message" id="directionError">Direction is required</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Default Payer</label>
+                        <select class="form-control" id="defaultPayer">
+                            <option value="">Select Default Payer</option>
+                            <option value="bcbs">BlueCross BlueShield</option>
+                            <option value="aetna">Aetna</option>
+                            <option value="uhc">UnitedHealthcare</option>
+                            <option value="cigna">Cigna</option>
+                            <option value="humana">Humana</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="payerWarning" class="warning-box" style="display: none;">
+                    <div class="warning-box-icon">⚠️</div>
+                    <div class="warning-box-content">
+                        <div class="warning-box-title">Missing Default Payer</div>
+                        <div class="warning-box-message">
+                            It's recommended to set a default payer for this trading partner to ensure proper routing of claims.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Status <span style="color: red;">*</span></label>
+                        <select class="form-control" id="status">
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Effective Start Date <span style="color: red;">*</span></label>
+                        <input type="date" class="form-control" id="effectiveStartDate">
+                        <div class="validation-message" id="startDateError">Start date is required</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Effective End Date</label>
+                        <input type="date" class="form-control" id="effectiveEndDate">
+                        <div class="validation-message" id="endDateError">End date must be after start date</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Communication Channel -->
+            <div class="tab-content" id="tab-communication">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Channel Type <span style="color: red;">*</span></label>
+                        <select class="form-control" id="channelType">
+                            <option value="">Select Channel Type</option>
+                            <option value="api">API</option>
+                            <option value="sftp">SFTP</option>
+                            <option value="direct">Direct</option>
+                        </select>
+                        <div class="validation-message" id="channelTypeError">Channel type is required</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Environment</label>
+                        <div class="toggle-container">
+                            <span>Test</span>
+                            <div class="toggle" id="environmentToggle" onclick="toggleEnvironment()"></div>
+                            <span>Production</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group form-group-full">
+                        <label>Endpoint URL / Path <span style="color: red;">*</span></label>
+                        <input type="text" class="form-control" id="endpoint" placeholder="e.g., https://api.payer.com/claims or /sftp/inbox">
+                        <div class="validation-message" id="endpointError">Endpoint is required</div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Username / Client ID</label>
+                        <input type="text" class="form-control" id="username" placeholder="Authentication username">
+                    </div>
+                    <div class="form-group">
+                        <label>Password / API Key</label>
+                        <input type="password" class="form-control" id="apiKey" placeholder="•••••••••">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group form-group-full">
+                        <label>Acknowledgment Routing Path</label>
+                        <input type="text" class="form-control" id="ackRoutingPath" placeholder="e.g., /sftp/ack or /api/acknowledgments">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Retry Policy</label>
+                        <select class="form-control" id="retryPolicy">
+                            <option value="default">Default (3 attempts, 5 min intervals)</option>
+                            <option value="aggressive">Aggressive (5 attempts, 2 min intervals)</option>
+                            <option value="conservative">Conservative (2 attempts, 10 min intervals)</option>
+                            <option value="none">No Retry</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <div class="info-box-icon">ℹ️</div>
+                    <div class="info-box-content">
+                        <strong>Connection Testing:</strong> After saving, use the "Test Connection" button in the table actions to verify connectivity with this trading partner.
+                    </div>
+                </div>
+
+                <div style="margin-top: 16px;">
+                    <button class="btn btn-secondary btn-sm" onclick="testConnection()">
+                        <span>🔌</span> Test Connection
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tab: Contact Info -->
+            <div class="tab-content" id="tab-contact">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Contact Name</label>
+                        <input type="text" class="form-control" id="contactName" placeholder="e.g., John Smith">
+                    </div>
+                    <div class="form-group">
+                        <label>Contact Email</label>
+                        <input type="email" class="form-control" id="contactEmail" placeholder="e.g., john.smith@payer.com">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Contact Phone</label>
+                        <input type="tel" class="form-control" id="contactPhone" placeholder="e.g., (555) 123-4567">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group form-group-full">
+                        <label>Notes / Additional Information</label>
+                        <textarea class="form-control" id="notes" placeholder="Enter any additional notes or information about this trading partner..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Audit -->
+            <div class="tab-content" id="tab-audit">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Created By</label>
+                        <input type="text" class="form-control" value="John Doe" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Created Date</label>
+                        <input type="text" class="form-control" value="2025-01-15 10:30 AM" readonly>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Last Updated By</label>
+                        <input type="text" class="form-control" value="Jane Smith" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Last Updated Date</label>
+                        <input type="text" class="form-control" value="2025-01-20 03:45 PM" readonly>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Last Used File ID</label>
+                        <input type="text" class="form-control" value="CLM_837_20250120_001234" readonly>
+                    </div>
+                </div>
+
+                <div style="margin-top: 24px;">
+                    <h3 style="font-size: 16px; margin-bottom: 16px; font-weight: 600;">Audit Trail</h3>
+
+                    <div class="audit-item">
+                        <div class="audit-header">
+                            <div>
+                                <div class="audit-user">Jane Smith</div>
+                                <div class="audit-action">Updated communication endpoint</div>
+                            </div>
+                            <div class="audit-date">2025-01-20 03:45 PM</div>
+                        </div>
+                    </div>
+
+                    <div class="audit-item">
+                        <div class="audit-header">
+                            <div>
+                                <div class="audit-user">John Doe</div>
+                                <div class="audit-action">Changed status from Inactive to Active</div>
+                            </div>
+                            <div class="audit-date">2025-01-18 11:20 AM</div>
+                        </div>
+                    </div>
+
+                    <div class="audit-item">
+                        <div class="audit-header">
+                            <div>
+                                <div class="audit-user">John Doe</div>
+                                <div class="audit-action">Created trading partner</div>
+                            </div>
+                            <div class="audit-date">2025-01-15 10:30 AM</div>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-secondary btn-sm" style="margin-top: 12px;">
+                        View Full Audit Trail
+                    </button>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-success" onclick="saveTradingPartner()">
+                    <span>💾</span> Save Trading Partner
+                </button>
+            </div>
+        </div>
+    </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        // Toggle Mobile Menu
+        function toggleMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebarBackdrop');
+
+            sidebar.classList.toggle('open');
+            backdrop.classList.toggle('show');
+
+            // Prevent body scroll when menu is open
+            if (sidebar.classList.contains('open')) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = '';
+            }
+        }
+
+        // Close sidebar when window is resized above mobile breakpoint
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 1024) {
+                const sidebar = document.getElementById('sidebar');
+                const backdrop = document.getElementById('sidebarBackdrop');
+
+                sidebar.classList.remove('open');
+                backdrop.classList.remove('show');
+                document.body.style.overflow = '';
+            }
+        });
+
+        // Sample Data
+        let tradingPartners = [
+            {
+                id: 1,
+                partnerName: 'BlueCross BlueShield',
+                partnerType: 'receiver',
+                qualifier: 'ZZ',
+                senderId: 'EHRSENDER001',
+                receiverId: 'BCBSREC001',
+                direction: 'outbound',
+                defaultPayer: 'BlueCross BlueShield',
+                channel: 'SFTP',
+                status: 'active',
+                effectiveStart: '2024-01-01',
+                effectiveEnd: '2025-12-31'
+            },
+            {
+                id: 2,
+                partnerName: 'Aetna Healthcare',
+                partnerType: 'receiver',
+                qualifier: '30',
+                senderId: 'EHRSENDER001',
+                receiverId: 'AETNAREC002',
+                direction: 'outbound',
+                defaultPayer: 'Aetna',
+                channel: 'API',
+                status: 'active',
+                effectiveStart: '2024-03-15',
+                effectiveEnd: ''
+            },
+            {
+                id: 3,
+                partnerName: 'UnitedHealthcare',
+                partnerType: 'receiver',
+                qualifier: 'ZZ',
+                senderId: 'EHRSENDER001',
+                receiverId: 'UHCREC003',
+                direction: 'both',
+                defaultPayer: 'UnitedHealthcare',
+                channel: 'SFTP',
+                status: 'active',
+                effectiveStart: '2024-02-01',
+                effectiveEnd: '2026-01-31'
+            },
+            {
+                id: 4,
+                partnerName: 'Cigna Claims Portal',
+                partnerType: 'receiver',
+                qualifier: '33',
+                senderId: 'EHRSENDER001',
+                receiverId: 'CIGNAREC004',
+                direction: 'outbound',
+                defaultPayer: 'Cigna',
+                channel: 'Direct',
+                status: 'inactive',
+                effectiveStart: '2023-11-01',
+                effectiveEnd: '2024-10-31'
+            },
+            {
+                id: 5,
+                partnerName: 'Change Healthcare Clearinghouse',
+                partnerType: 'both',
+                qualifier: 'ZZ',
+                senderId: 'EHRSENDER001',
+                receiverId: 'CHGCLR005',
+                direction: 'both',
+                defaultPayer: '',
+                channel: 'API',
+                status: 'active',
+                effectiveStart: '2024-01-01',
+                effectiveEnd: ''
+            }
+        ];
+
+        let currentPage = 1;
+        let sortColumn = '';
+        let sortDirection = 'asc';
+        let filteredData = [...tradingPartners];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            renderTable();
+
+            // Set default date for effective start
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('effectiveStartDate').value = today;
+
+            // Add event listeners for payer warning
+            document.getElementById('defaultPayer').addEventListener('change', checkPayerWarning);
+        });
+
+        // Render Table
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+
+            if (filteredData.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="11">
+                            <div class="empty-state">
+                                <div class="empty-state-icon">📭</div>
+                                <div class="empty-state-title">No Trading Partners Found</div>
+                                <div class="empty-state-message">Add your first trading partner or adjust your filters</div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                updatePaginationInfo(0, 0, 0);
+                return;
+            }
+
+            tbody.innerHTML = filteredData.map(partner => `
+                <tr>
+                    <td><strong>${partner.partnerName}</strong></td>
+                    <td>
+                        <span class="badge ${partner.partnerType === 'sender' ? 'badge-sender' : partner.partnerType === 'receiver' ? 'badge-receiver' : 'badge-both'}">
+                            ${partner.partnerType === 'sender' ? '📤 Sender' : partner.partnerType === 'receiver' ? '📥 Receiver' : '🔄 Both'}
+                        </span>
+                    </td>
+                    <td><code>${partner.qualifier}</code></td>
+                    <td><code>${partner.senderId}</code></td>
+                    <td><code>${partner.receiverId}</code></td>
+                    <td>
+                        <span class="badge ${partner.direction === 'inbound' ? 'badge-inbound' : partner.direction === 'outbound' ? 'badge-outbound' : 'badge-both'}">
+                            ${partner.direction.charAt(0).toUpperCase() + partner.direction.slice(1)}
+                        </span>
+                    </td>
+                    <td>${partner.defaultPayer || '<span style="color: #94a3b8;">Not Set</span>'}</td>
+                    <td>${partner.channel}</td>
+                    <td>
+                        <span class="badge ${partner.status === 'active' ? 'badge-active' : 'badge-inactive'}">
+                            ${partner.status === 'active' ? '✓ Active' : '✗ Inactive'}
+                        </span>
+                    </td>
+                    <td>
+                        <div style="font-size: 13px;">
+                            ${formatDate(partner.effectiveStart)}<br>
+                            <span style="color: #64748b;">to ${partner.effectiveEnd ? formatDate(partner.effectiveEnd) : 'No End'}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="action-btns">
+                            <button class="btn btn-secondary btn-sm" onclick="viewPartner(${partner.id})" title="View">👁️</button>
+                            <button class="btn btn-secondary btn-sm" onclick="editPartner(${partner.id})" title="Edit">✏️</button>
+                            <button class="btn btn-danger btn-sm" onclick="deletePartner(${partner.id})" title="Delete">🗑️</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+
+            updatePaginationInfo(1, filteredData.length, filteredData.length);
+            document.getElementById('recordCount').textContent = filteredData.length;
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+        }
+
+        function updatePaginationInfo(start, end, total) {
+            document.getElementById('showingStart').textContent = start;
+            document.getElementById('showingEnd').textContent = end;
+            document.getElementById('totalRecords').textContent = total;
+        }
+
+        // Modal Functions
+        function openAddModal() {
+            document.getElementById('modalTitle').textContent = 'Add New Trading Partner';
+            document.getElementById('partnerModal').classList.add('active');
+            resetForm();
+        }
+
+        function closeModal() {
+            document.getElementById('partnerModal').classList.remove('active');
+        }
+
+        function resetForm() {
+            const form = document.getElementById('partnerModal');
+            form.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], input[type="password"], textarea').forEach(input => {
+                input.value = '';
+                input.classList.remove('error');
+            });
+            form.querySelectorAll('select').forEach(select => {
+                select.selectedIndex = 0;
+            });
+            form.querySelectorAll('.validation-message').forEach(msg => {
+                msg.classList.remove('show');
+            });
+            document.getElementById('payerWarning').style.display = 'none';
+
+            // Reset to first tab
+            switchTab('general');
+
+            // Set default date
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('effectiveStartDate').value = today;
+        }
+
+        // Tab Switching
+        function switchTab(tabName) {
+            // Remove active class from all tabs and contents
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            // Add active class to selected tab and content
+            event.target.classList.add('active');
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+        }
+
+        // Validation
+        function validateForm() {
+            let isValid = true;
+
+            // Required fields
+            const requiredFields = [
+                { id: 'partnerName', errorId: 'partnerNameError' },
+                { id: 'partnerType', errorId: 'partnerTypeError' },
+                { id: 'isa05Qualifier', errorId: 'isa05Error' },
+                { id: 'senderId', errorId: 'senderIdError' },
+                { id: 'isa07Qualifier', errorId: 'isa07Error' },
+                { id: 'receiverId', errorId: 'receiverIdError' },
+                { id: 'direction', errorId: 'directionError' },
+                { id: 'effectiveStartDate', errorId: 'startDateError' },
+                { id: 'channelType', errorId: 'channelTypeError' },
+                { id: 'endpoint', errorId: 'endpointError' }
+            ];
+
+            requiredFields.forEach(field => {
+                const input = document.getElementById(field.id);
+                const error = document.getElementById(field.errorId);
+
+                if (!input.value.trim()) {
+                    input.classList.add('error');
+                    error.classList.add('show');
+                    isValid = false;
+                } else {
+                    input.classList.remove('error');
+                    error.classList.remove('show');
+                }
+            });
+
+            // Date validation
+            const startDate = new Date(document.getElementById('effectiveStartDate').value);
+            const endDate = document.getElementById('effectiveEndDate').value ? new Date(document.getElementById('effectiveEndDate').value) : null;
+
+            if (endDate && endDate <= startDate) {
+                document.getElementById('effectiveEndDate').classList.add('error');
+                document.getElementById('endDateError').classList.add('show');
+                isValid = false;
+            } else {
+                document.getElementById('effectiveEndDate').classList.remove('error');
+                document.getElementById('endDateError').classList.remove('show');
+            }
+
+            // Check for duplicates
+            const senderId = document.getElementById('senderId').value;
+            const receiverId = document.getElementById('receiverId').value;
+            const duplicate = tradingPartners.find(p => p.senderId === senderId && p.receiverId === receiverId);
+
+            if (duplicate) {
+                showToast('error', 'Duplicate Trading Partner', 'A trading partner with this sender/receiver combination already exists');
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        function checkPayerWarning() {
+            const defaultPayer = document.getElementById('defaultPayer').value;
+            const warningBox = document.getElementById('payerWarning');
+
+            if (!defaultPayer) {
+                warningBox.style.display = 'flex';
+            } else {
+                warningBox.style.display = 'none';
+            }
+        }
+
+        // Save Trading Partner
+        function saveTradingPartner() {
+            if (!validateForm()) {
+                showToast('error', 'Validation Error', 'Please fill in all required fields correctly');
+                return;
+            }
+
+            // Simulate save
+            showToast('success', 'Success', 'Trading partner saved successfully');
+
+            // Add to table (simulated)
+            const newPartner = {
+                id: tradingPartners.length + 1,
+                partnerName: document.getElementById('partnerName').value,
+                partnerType: document.getElementById('partnerType').value,
+                qualifier: document.getElementById('isa05Qualifier').value,
+                senderId: document.getElementById('senderId').value,
+                receiverId: document.getElementById('receiverId').value,
+                direction: document.getElementById('direction').value,
+                defaultPayer: document.getElementById('defaultPayer').value,
+                channel: document.getElementById('channelType').value.toUpperCase(),
+                status: document.getElementById('status').value,
+                effectiveStart: document.getElementById('effectiveStartDate').value,
+                effectiveEnd: document.getElementById('effectiveEndDate').value
+            };
+
+            tradingPartners.push(newPartner);
+            filteredData = [...tradingPartners];
+            renderTable();
+            closeModal();
+        }
+
+        // Toast Notifications
+        function showToast(type, title, message) {
+            const toastContainer = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+
+            const icons = {
+                success: '✓',
+                error: '✗',
+                warning: '⚠',
+                info: 'ℹ'
+            };
+
+            toast.innerHTML = `
+                <div class="toast-icon">${icons[type]}</div>
+                <div class="toast-content">
+                    <div class="toast-title">${title}</div>
+                    <div class="toast-message">${message}</div>
+                </div>
+                <button class="toast-close" onclick="this.parentElement.remove()">&times;</button>
+            `;
+
+            toastContainer.appendChild(toast);
+
+            setTimeout(() => {
+                toast.remove();
+            }, 5000);
+        }
+
+        // Filter Functions
+        function toggleFilters() {
+            const filterGrid = document.getElementById('filterGrid');
+            const toggleText = document.getElementById('filterToggleText');
+
+            if (filterGrid.style.display === 'none') {
+                filterGrid.style.display = 'grid';
+                toggleText.textContent = 'Collapse';
+            } else {
+                filterGrid.style.display = 'none';
+                toggleText.textContent = 'Expand';
+            }
+        }
+
+        function applyFilters() {
+            const partnerName = document.getElementById('filterPartnerName').value.toLowerCase();
+            const senderId = document.getElementById('filterSenderId').value.toLowerCase();
+            const receiverId = document.getElementById('filterReceiverId').value.toLowerCase();
+            const qualifier = document.getElementById('filterQualifier').value;
+            const direction = document.getElementById('filterDirection').value;
+            const status = document.getElementById('filterStatus').value;
+
+            filteredData = tradingPartners.filter(partner => {
+                return (!partnerName || partner.partnerName.toLowerCase().includes(partnerName)) &&
+                       (!senderId || partner.senderId.toLowerCase().includes(senderId)) &&
+                       (!receiverId || partner.receiverId.toLowerCase().includes(receiverId)) &&
+                       (!qualifier || partner.qualifier === qualifier) &&
+                       (!direction || partner.direction === direction) &&
+                       (!status || partner.status === status);
+            });
+
+            renderTable();
+            showToast('info', 'Filters Applied', `Showing ${filteredData.length} of ${tradingPartners.length} records`);
+        }
+
+        function clearFilters() {
+            document.getElementById('filterPartnerName').value = '';
+            document.getElementById('filterSenderId').value = '';
+            document.getElementById('filterReceiverId').value = '';
+            document.getElementById('filterQualifier').selectedIndex = 0;
+            document.getElementById('filterDirection').selectedIndex = 0;
+            document.getElementById('filterStatus').selectedIndex = 0;
+
+            filteredData = [...tradingPartners];
+            renderTable();
+            showToast('info', 'Filters Cleared', 'Showing all records');
+        }
+
+        // Sorting
+        function sortTable(column) {
+            if (sortColumn === column) {
+                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortColumn = column;
+                sortDirection = 'asc';
+            }
+
+            filteredData.sort((a, b) => {
+                let aVal = a[column];
+                let bVal = b[column];
+
+                if (typeof aVal === 'string') {
+                    aVal = aVal.toLowerCase();
+                    bVal = bVal.toLowerCase();
+                }
+
+                if (sortDirection === 'asc') {
+                    return aVal > bVal ? 1 : -1;
+                } else {
+                    return aVal < bVal ? 1 : -1;
+                }
+            });
+
+            // Update sort indicators
+            document.querySelectorAll('th').forEach(th => {
+                th.classList.remove('sort-asc', 'sort-desc');
+            });
+
+            const sortedTh = Array.from(document.querySelectorAll('th')).find(th =>
+                th.textContent.toLowerCase().includes(column.toLowerCase().replace(/([A-Z])/g, ' $1').trim())
+            );
+
+            if (sortedTh) {
+                sortedTh.classList.add(sortDirection === 'asc' ? 'sort-asc' : 'sort-desc');
+            }
+
+            renderTable();
+        }
+
+        // Action Functions
+        function viewPartner(id) {
+            const partner = tradingPartners.find(p => p.id === id);
+            showToast('info', 'View Partner', `Viewing details for ${partner.partnerName}`);
+            // In real implementation, open modal in read-only mode
+        }
+
+        function editPartner(id) {
+            const partner = tradingPartners.find(p => p.id === id);
+            document.getElementById('modalTitle').textContent = 'Edit Trading Partner';
+
+            // Populate form
+            document.getElementById('partnerName').value = partner.partnerName;
+            document.getElementById('partnerType').value = partner.partnerType;
+            document.getElementById('senderId').value = partner.senderId;
+            document.getElementById('receiverId').value = partner.receiverId;
+            document.getElementById('direction').value = partner.direction;
+            document.getElementById('status').value = partner.status;
+
+            document.getElementById('partnerModal').classList.add('active');
+        }
+
+        function deletePartner(id) {
+            const partner = tradingPartners.find(p => p.id === id);
+
+            if (confirm(`Are you sure you want to delete trading partner "${partner.partnerName}"? This action cannot be undone.`)) {
+                tradingPartners = tradingPartners.filter(p => p.id !== id);
+                filteredData = tradingPartners.filter(p =>
+                    filteredData.some(fp => fp.id === p.id)
+                );
+                renderTable();
+                showToast('success', 'Deleted', `Trading partner "${partner.partnerName}" has been deleted`);
+            }
+        }
+
+        function testConnection() {
+            showToast('info', 'Testing Connection', 'Attempting to connect to trading partner...');
+
+            // Simulate connection test
+            setTimeout(() => {
+                const success = Math.random() > 0.3;
+                if (success) {
+                    showToast('success', 'Connection Successful', 'Successfully connected to trading partner endpoint');
+                } else {
+                    showToast('error', 'Connection Failed', 'Unable to connect. Please verify endpoint and credentials');
+                }
+            }, 2000);
+        }
+
+        function toggleEnvironment() {
+            const toggle = document.getElementById('environmentToggle');
+            toggle.classList.toggle('active');
+        }
+
+        // Header Actions
+        function syncFromClearinghouse() {
+            showToast('info', 'Syncing', 'Synchronizing trading partners from clearinghouse...');
+            setTimeout(() => {
+                showToast('success', 'Sync Complete', 'Successfully synchronized 3 trading partners');
+            }, 2000);
+        }
+
+        function exportConfigurations() {
+            showToast('success', 'Export Started', 'Exporting trading partner configurations to CSV...');
+        }
+
+        function refreshConnections() {
+            showToast('info', 'Refreshing', 'Testing all active connections...');
+            setTimeout(() => {
+                showToast('success', 'Refresh Complete', '4 of 5 connections are active');
+            }, 2000);
+        }
+
+        function exportTable() {
+            showToast('success', 'Export Started', 'Exporting table data to Excel...');
+        }
+
+        function changePage(direction) {
+            showToast('info', 'Navigation', `Moving to ${direction} page`);
+        }
+
+        // Close modal on outside click
+        document.getElementById('partnerModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

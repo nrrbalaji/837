@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Run Database Migration</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            color: #555;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 30px;
+        }
+        button {
+            flex: 1;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #555;
+        }
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.6;
+            display: none;
+        }
+        .result.success {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+        .result.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+        .result.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 2px solid #bee5eb;
+        }
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .info-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 16px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .info-box h3 {
+            color: #667eea;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+        .info-box ul {
+            margin-left: 20px;
+            color: #555;
+            font-size: 14px;
+        }
+        .info-box li {
+            margin-bottom: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Database Migration</h1>
+        <p class="subtitle">Add facility_id to Provider table</p>
+
+        <div class="info-box">
+            <h3>What this migration does:</h3>
+            <ul>
+                <li>Adds facility_id column to Provider table</li>
+                <li>Creates foreign key to Facilities table</li>
+                <li>Creates index for performance</li>
+            </ul>
+        </div>
+
+        <div class="input-group">
+            <label for="token">Authentication Token:</label>
+            <input
+                type="text"
+                id="token"
+                placeholder="Paste your JWT token here (from localStorage)"
+            >
+        </div>
+
+        <div class="button-group">
+            <button class="btn-secondary" onclick="checkStatus()">Check Status</button>
+            <button class="btn-primary" onclick="runMigration()">Run Migration</button>
+        </div>
+
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        // Get token from localStorage if available
+        window.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('token');
+            if (token) {
+                document.getElementById('token').value = token;
+            }
+        });
+
+        async function checkStatus() {
+            const token = document.getElementById('token').value.trim();
+            const resultDiv = document.getElementById('result');
+
+            if (!token) {
+                showResult('error', '⚠️ Please enter your authentication token');
+                return;
+            }
+
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result info';
+            resultDiv.innerHTML = '<div class="loader"></div> Checking migration status...';
+
+            try {
+                const response = await fetch('http://localhost:3000/api/v1/migrations/status', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    if (data.facility_id_exists) {
+                        showResult('success', `✅ ${data.message}<br><br>The facility dropdown should now work!`);
+                    } else {
+                        showResult('info', `ℹ️ ${data.message}<br><br>Click "Run Migration" to add it.`);
+                    }
+                } else {
+                    showResult('error', `❌ Error: ${data.error || 'Failed to check status'}`);
+                }
+            } catch (error) {
+                showResult('error', `❌ Connection Error: ${error.message}<br><br>Make sure the backend server is running on http://localhost:3000`);
+            }
+        }
+
+        async function runMigration() {
+            const token = document.getElementById('token').value.trim();
+            const resultDiv = document.getElementById('result');
+
+            if (!token) {
+                showResult('error', '⚠️ Please enter your authentication token');
+                return;
+            }
+
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result info';
+            resultDiv.innerHTML = '<div class="loader"></div> Running migration...';
+
+            try {
+                const response = await fetch('http://localhost:3000/api/v1/migrations/add-facility-to-provider', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    let message = `✅ ${data.message}`;
+                    if (data.changes && data.changes.length > 0) {
+                        message += '<br><br><strong>Changes made:</strong><ul>';
+                        data.changes.forEach(change => {
+                            message += `<li>${change}</li>`;
+                        });
+                        message += '</ul>';
+                    }
+                    if (data.alreadyExists) {
+                        message += '<br><br>ℹ️ No action needed - column already exists.';
+                    }
+                    showResult('success', message);
+                } else {
+                    showResult('error', `❌ Migration Failed: ${data.error || data.details || 'Unknown error'}`);
+                }
+            } catch (error) {
+                showResult('error', `❌ Connection Error: ${error.message}<br><br>Make sure the backend server is running on http://localhost:3000`);
+            }
+        }
+
+        function showResult(type, message) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            resultDiv.className = `result ${type}`;
+            resultDiv.innerHTML = message;
+        }
+    </script>
+</body>
+</html>
