@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
@@ -9,20 +9,9 @@ import {
   CheckCircle,
   XCircle,
   AlertTriangle,
-  ChevronLeft,
-  ChevronRight,
-  Maximize2,
-  Minimize2,
-  List,
-  Lightbulb,
-  RotateCcw,
-  Search,
-  Info,
 } from "lucide-react";
 import Editor, { Monaco } from "@monaco-editor/react";
 import type * as monacoType from "monaco-editor";
-import ErrorNavigationPanel from "../components/ErrorNavigationPanel";
-import QuickFixSuggestion from "../components/QuickFixSuggestion";
 
 const API_BASE =
   import.meta.env.VITE_API_BASE_URL || "http://10.1.9.210:3000/api/v1";
@@ -245,7 +234,7 @@ const ManualCorrection: React.FC = () => {
 
   // Helper function to find JSON path and line number with improved accuracy
   const findJsonPath = (
-    obj: any,
+    _obj: any,
     searchKey: string
   ): { line: number; column: number; endColumn: number } | null => {
     const lines = jsonContent.split("\n");

@@ -197,7 +197,7 @@ const PayerMaster: React.FC = () => {
 
 
 
-  function handleDeactivate(payer_id: string): void {
+  function handleDeactivate(_payer_id: string): void {
     throw new Error("Function not implemented.");
   }
 

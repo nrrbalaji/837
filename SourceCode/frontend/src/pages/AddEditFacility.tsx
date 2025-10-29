@@ -56,11 +56,7 @@ interface Facility {
   };
 }
 
-interface Payer {
-  payer_id: string;
-  payer_name: string;
-  payer_code: string;
-}
+
 
 const AddEditFacility: React.FC = () => {
   const { id } = useParams<{ id?: string }>();

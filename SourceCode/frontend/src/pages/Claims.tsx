@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import axios from 'axios'
-import { Search, Filter, Eye } from 'lucide-react'
+import { Search, Eye } from 'lucide-react'
 
 interface Claim {
   claim_id: string

@@ -153,7 +153,7 @@ const FacilityIngestionConfig: React.FC<Props> = ({
       ...initialConfig?.sftp,
     },
     validationSchema: sftpValidationSchema,
-    onSubmit: (values) => {
+    onSubmit: (_values) => {
       handleSave();
     },
   });
@@ -170,7 +170,7 @@ const FacilityIngestionConfig: React.FC<Props> = ({
       ...initialConfig?.local,
     },
     validationSchema: localValidationSchema,
-    onSubmit: (values) => {
+    onSubmit: (_values) => {
       handleSave();
     },
   });

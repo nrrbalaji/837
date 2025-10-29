@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
-import { X, Eye, EyeOff, Lock } from "lucide-react";
+import { X, Eye, EyeOff } from "lucide-react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import FacilityMultiSelect from "./FacilityMultiSelect";
@@ -26,7 +26,7 @@ interface Facility {
 interface UserFormData {
   username: string;
   email: string;
-  password: string;
+  password?: string;
   first_name: string;
   last_name: string;
   is_active: boolean;

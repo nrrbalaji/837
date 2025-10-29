@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
@@ -8,7 +8,6 @@ import {
   FileText,
   CheckCircle,
   XCircle,
-  AlertTriangle,
   ChevronLeft,
   ChevronRight,
   Maximize2,
@@ -16,7 +15,6 @@ import {
   List,
   Lightbulb,
   RotateCcw,
-  Search,
   Info,
 } from "lucide-react";
 import Editor, { Monaco } from "@monaco-editor/react";
@@ -280,7 +278,7 @@ const ManualCorrection: React.FC = () => {
 
   // Helper function to find JSON path and line number with improved accuracy
   const findJsonPath = (
-    obj: any,
+    _obj: any,
     searchKey: string
   ): { line: number; column: number; endColumn: number } | null => {
     const lines = jsonContent.split("\n");
@@ -837,7 +835,6 @@ const ManualCorrection: React.FC = () => {
 
                 {/* Suggestions */}
                 <QuickFixSuggestion
-                  error={selectedError}
                   suggestions={suggestions}
                   onApplyFix={handleApplyFix}
                   onCopyValue={handleCopyValue}

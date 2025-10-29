@@ -55,7 +55,7 @@ const AddEditRule: React.FC = () => {
     rule_code: '',
     rule_name: '',
     validation_rule_id: '',
-    correction_type: 'LOOKUP',
+    correction_type: 'MASTER_LOOKUP',
     requires_approval: false,
     is_test_mode: true,
     priority: 100,
@@ -173,7 +173,7 @@ const AddEditRule: React.FC = () => {
       newErrors.correction_source_type = 'Correction source type is required';
     }
 
-    if (correctionRule.correction_source_type === 'MASTER_LOOKUP') {
+    if (correctionRule.correction_source_type === 'MASTER_GENERIC_LOOKUP') {
       if (!correctionRule.lookup_table) {
         newErrors.lookup_table = 'Lookup table is required';
       }
