@@ -11,20 +11,12 @@ interface FixSuggestion {
 }
 
 interface QuickFixSuggestionProps {
-  error: {
-    error_message: string;
-    error_location: string;
-    segment_id?: string;
-    element_id?: string;
-    severity: string;
-  };
   suggestions: FixSuggestion[];
   onApplyFix: (suggestion: FixSuggestion) => void;
   onCopyValue?: (value: string) => void;
 }
 
 const QuickFixSuggestion: React.FC<QuickFixSuggestionProps> = ({
-  error,
   suggestions,
   onApplyFix,
   onCopyValue

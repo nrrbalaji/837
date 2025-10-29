@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   Plus,
   Upload,
   Download,
-  RefreshCw,
   Search,
   Filter,
   Edit,
@@ -16,12 +16,7 @@ import {
   Building2,
   ChevronLeft,
   ChevronRight,
-  FileText,
-  MapPin,
-  Wifi,
-  Clock,
   Power,
-  Loader,
 } from "lucide-react";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "/api/v1";
@@ -59,23 +54,17 @@ interface SFTPConfig {
 }
 
 const PayerMaster: React.FC = () => {
+  const navigate = useNavigate();
   const [payers, setPayers] = useState<Payer[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
-  const [modalMode, setModalMode] = useState<"add" | "edit" | "view">("add");
-  const [selectedPayer, setSelectedPayer] = useState<Payer | null>(null);
-  const [activeTab, setActiveTab] = useState<
-    "general" | "contact" | "transmission" | "metadata"
-  >("general");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [sortField, setSortField] = useState<string>("payer_name");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [toast, setToast] = useState<{
-    type: "success" | "error" | "info";
+    type: "success" | "error";
     message: string;
   } | null>(null);
-  const [testingConnection, setTestingConnection] = useState(false);
 
   // Filter states
   const [filters, setFilters] = useState({
@@ -87,39 +76,6 @@ const PayerMaster: React.FC = () => {
     dateFrom: "",
     dateTo: "",
   });
-
-  // Form states
-  const [formData, setFormData] = useState<Partial<Payer>>({
-    payer_code: "",
-    payer_name: "",
-    payer_type: "",
-    trading_partner_id: "",
-    electronic_payer_id: "",
-    address_line1: "",
-    address_line2: "",
-    city: "",
-    state: "",
-    zip_code: "",
-    phone: "",
-    fax: "",
-    email: "",
-    transmission_method: "SFTP",
-    endpoint_url: "",
-    sftp_config: null,
-    is_active: true,
-  });
-
-  const [sftpConfig, setSftpConfig] = useState<SFTPConfig>({
-    host: "",
-    port: 22,
-    username: "",
-    password: "",
-    privateKey: "",
-    remotePath: "/",
-  });
-
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [notes, setNotes] = useState("");
 
   const payerTypes = [
     "Medicare",
@@ -213,7 +169,7 @@ const PayerMaster: React.FC = () => {
     }
   };
 
-  const showToast = (type: "success" | "error" | "info", message: string) => {
+  const showToast = (type: "success" | "error", message: string) => {
     setToast({ type, message });
     setTimeout(() => setToast(null), 5000);
   };
@@ -227,184 +183,23 @@ const PayerMaster: React.FC = () => {
     }
   };
 
-  const openAddModal = () => {
-    setModalMode("add");
-    setFormData({
-      payer_code: "",
-      payer_name: "",
-      payer_type: payerTypes[0],
-      trading_partner_id: "",
-      electronic_payer_id: "",
-      address_line1: "",
-      address_line2: "",
-      city: "",
-      state: "",
-      zip_code: "",
-      phone: "",
-      fax: "",
-      email: "",
-      transmission_method: "SFTP",
-      endpoint_url: "",
-      sftp_config: null,
-      is_active: true,
-    });
-    setSftpConfig({
-      host: "",
-      port: 22,
-      username: "",
-      password: "",
-      privateKey: "",
-      remotePath: "/",
-    });
-    setNotes("");
-    setErrors({});
-    setActiveTab("general");
-    setShowModal(true);
+  const handleAddNew = () => {
+    navigate("/payers/add");
   };
 
-  const openEditModal = (payer: Payer) => {
-    setModalMode("edit");
-    setSelectedPayer(payer);
-    setFormData(payer);
-    if (payer.sftp_config) {
-      setSftpConfig(payer.sftp_config);
-    }
-    setActiveTab("general");
-    setShowModal(true);
+  const handleView = (payer: Payer) => {
+    navigate(`/payers/view/${payer.payer_id}`);
   };
 
-  const openViewModal = (payer: Payer) => {
-    setModalMode("view");
-    setSelectedPayer(payer);
-    setFormData(payer);
-    if (payer.sftp_config) {
-      setSftpConfig(payer.sftp_config);
-    }
-    setActiveTab("general");
-    setShowModal(true);
+  const handleEdit = (payer: Payer) => {
+    navigate(`/payers/edit/${payer.payer_id}`);
   };
 
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {};
 
-    if (!formData.payer_code?.trim())
-      newErrors.payer_code = "Payer code is required";
-    if (!formData.payer_name?.trim())
-      newErrors.payer_name = "Payer name is required";
-    if (!formData.payer_type) newErrors.payer_type = "Payer type is required";
-    if (!formData.electronic_payer_id?.trim())
-      newErrors.electronic_payer_id = "Electronic payer ID is required";
 
-    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Invalid email format";
-    }
-
-    if (formData.zip_code && !/^\d{5}(-\d{4})?$/.test(formData.zip_code)) {
-      newErrors.zip_code = "Invalid ZIP code format";
-    }
-
-    if (
-      formData.endpoint_url &&
-      !/^https?:\/\/.+/.test(formData.endpoint_url)
-    ) {
-      newErrors.endpoint_url = "Invalid URL format";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async () => {
-    if (!validateForm()) {
-      showToast("error", "Please fix validation errors");
-      return;
-    }
-
-    try {
-      const token = localStorage.getItem("token");
-      const payload = {
-        ...formData,
-        sftp_config:
-          formData.transmission_method === "SFTP" ? sftpConfig : null,
-        notes,
-      };
-
-      if (modalMode === "add") {
-        await axios.post(`${API_BASE}/payers`, payload, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        showToast("success", "Payer added successfully");
-      } else if (modalMode === "edit") {
-        await axios.put(
-          `${API_BASE}/payers/${selectedPayer?.payer_id}`,
-          payload,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-        showToast("success", "Payer updated successfully");
-      }
-
-      setShowModal(false);
-      fetchPayers();
-    } catch (error: any) {
-      if (error.response?.status === 409) {
-        showToast("error", "Payer code already exists");
-      } else {
-        showToast("error", error.response?.data?.error || "Operation failed");
-      }
-    }
-  };
-
-  const handleDeactivate = async (payerId: string) => {
-    if (!confirm("Are you sure you want to deactivate this payer?")) return;
-
-    try {
-      const token = localStorage.getItem("token");
-      await axios.delete(`${API_BASE}/payers/${payerId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      showToast("success", "Payer deactivated successfully");
-      fetchPayers();
-    } catch (error) {
-      showToast("error", "Failed to deactivate payer");
-    }
-  };
-
-  const testConnection = async () => {
-    setTestingConnection(true);
-    try {
-      const token = localStorage.getItem("token");
-      const payload = {
-        transmission_method: formData.transmission_method,
-        endpoint_url: formData.endpoint_url,
-        sftp_config:
-          formData.transmission_method === "SFTP" ? sftpConfig : null,
-      };
-
-      const response = await axios.post(
-        `${API_BASE}/payers/test-connection`,
-        payload,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      if (response.data.success) {
-        showToast("success", "Connection test successful!");
-      } else {
-        showToast("error", "Connection test failed: " + response.data.message);
-      }
-    } catch (error: any) {
-      showToast(
-        "error",
-        "Connection test failed: " +
-          (error.response?.data?.message || error.message)
-      );
-    } finally {
-      setTestingConnection(false);
-    }
-  };
+  function handleDeactivate(payer_id: string): void {
+    throw new Error("Function not implemented.");
+  }
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -473,7 +268,7 @@ const PayerMaster: React.FC = () => {
               Bulk Deactivate
             </button>
             <button
-              onClick={openAddModal}
+              onClick={handleAddNew}
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-teal-600 to-cyan-700 text-white font-semibold rounded-lg hover:from-teal-700 hover:to-cyan-800 transition-all shadow-md hover:shadow-lg"
             >
               <Plus size={20} />
@@ -603,7 +398,7 @@ const PayerMaster: React.FC = () => {
               Get started by adding your first payer
             </p>
             <button
-              onClick={openAddModal}
+              onClick={handleAddNew}
               className="inline-flex items-center gap-2 px-6 py-3 bg-teal-600 text-white font-medium rounded-lg hover:bg-teal-700 transition-all"
             >
               <Plus size={18} />
@@ -630,7 +425,7 @@ const PayerMaster: React.FC = () => {
                       <th
                         key={col.field}
                         onClick={() => handleSort(col.field)}
-                        className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-teal-100 transition-colors"
+                        className="px-3 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-teal-100 transition-colors"
                       >
                         <div className="flex items-center gap-2">
                           {col.label}
@@ -640,7 +435,7 @@ const PayerMaster: React.FC = () => {
                         </div>
                       </th>
                     ))}
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="px-3 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
@@ -651,7 +446,7 @@ const PayerMaster: React.FC = () => {
                       key={payer.payer_id}
                       className="hover:bg-teal-50 transition-colors"
                     >
-                      <td className="px-6 py-4">
+                      <td className="px-3 py-3">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 bg-teal-100 rounded-lg flex items-center justify-center">
                             <Building2 className="text-teal-600" size={20} />
@@ -661,32 +456,32 @@ const PayerMaster: React.FC = () => {
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm font-mono text-gray-700">
+                      <td className="px-3 py-3 text-sm font-mono text-gray-700">
                         {payer.payer_code}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-3 py-3">
                         <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
                           {payer.payer_type}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
+                      <td className="px-3 py-3 text-sm text-gray-600">
                         {payer.electronic_payer_id}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
+                      <td className="px-3 py-3 text-sm text-gray-600">
                         {payer.trading_partner_id}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-3 py-3">
                         <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
                           {payer.transmission_method}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
+                      <td className="px-3 py-3 text-sm text-gray-600">
                         {payer.city}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
+                      <td className="px-3 py-3 text-sm text-gray-600">
                         {payer.state}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-3 py-3">
                         <span
                           className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
                             payer.is_active
@@ -697,17 +492,17 @@ const PayerMaster: React.FC = () => {
                           {payer.is_active ? "Active" : "Inactive"}
                         </span>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-3 py-3">
                         <div className="flex items-center gap-2">
                           <button
-                            onClick={() => openViewModal(payer)}
+                            onClick={() => handleView(payer)}
                             className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
                             title="View"
                           >
                             <Eye size={18} />
                           </button>
                           <button
-                            onClick={() => openEditModal(payer)}
+                            onClick={() => handleEdit(payer)}
                             className="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors"
                             title="Edit"
                           >
@@ -761,625 +556,7 @@ const PayerMaster: React.FC = () => {
         )}
       </div>
 
-      {/* Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden">
-            {/* Modal Header */}
-            <div className="bg-gradient-to-r from-teal-600 to-cyan-700 px-6 py-4 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-white">
-                {modalMode === "add"
-                  ? "Add New Payer"
-                  : modalMode === "edit"
-                  ? "Edit Payer"
-                  : "View Payer"}
-              </h2>
-              <button
-                onClick={() => setShowModal(false)}
-                className="text-white hover:bg-white hover:bg-opacity-20 rounded-lg p-2 transition-colors"
-              >
-                <X size={24} />
-              </button>
-            </div>
 
-            {/* Tabs */}
-            <div className="border-b border-gray-200 bg-gray-50">
-              <nav className="flex">
-                {[
-                  { key: "general", label: "General Info", icon: FileText },
-                  { key: "contact", label: "Contact & Address", icon: MapPin },
-                  {
-                    key: "transmission",
-                    label: "Transmission/Integration",
-                    icon: Wifi,
-                  },
-                  { key: "metadata", label: "Metadata & Audit", icon: Clock },
-                ].map((tab) => {
-                  const Icon = tab.icon;
-                  return (
-                    <button
-                      key={tab.key}
-                      onClick={() => setActiveTab(tab.key as any)}
-                      className={`flex items-center gap-2 px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
-                        activeTab === tab.key
-                          ? "border-teal-600 text-teal-600 bg-white"
-                          : "border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                      }`}
-                    >
-                      <Icon size={18} />
-                      {tab.label}
-                    </button>
-                  );
-                })}
-              </nav>
-            </div>
-
-            {/* Modal Content */}
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
-              {/* General Info Tab */}
-              {activeTab === "general" && (
-                <div className="grid grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Payer Code <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.payer_code}
-                      onChange={(e) =>
-                        setFormData({ ...formData, payer_code: e.target.value })
-                      }
-                      disabled={modalMode === "view"}
-                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-gray-900 ${
-                        errors.payer_code ? "border-red-500" : "border-gray-300"
-                      }`}
-                      placeholder="e.g., BCBS001"
-                    />
-                    {errors.payer_code && (
-                      <p className="text-red-500 text-xs mt-1">
-                        {errors.payer_code}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Payer Name <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.payer_name}
-                      onChange={(e) =>
-                        setFormData({ ...formData, payer_name: e.target.value })
-                      }
-                      disabled={modalMode === "view"}
-                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-gray-900 ${
-                        errors.payer_name ? "border-red-500" : "border-gray-300"
-                      }`}
-                      placeholder="e.g., Blue Cross Blue Shield"
-                    />
-                    {errors.payer_name && (
-                      <p className="text-red-500 text-xs mt-1">
-                        {errors.payer_name}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Payer Type <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      value={formData.payer_type}
-                      onChange={(e) =>
-                        setFormData({ ...formData, payer_type: e.target.value })
-                      }
-                      disabled={modalMode === "view"}
-                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-gray-900 bg-white ${
-                        errors.payer_type ? "border-red-500" : "border-gray-300"
-                      }`}
-                    >
-                      <option value="">Select type</option>
-                      {payerTypes.map((type) => (
-                        <option key={type} value={type}>
-                          {type}
-                        </option>
-                      ))}
-                    </select>
-                    {errors.payer_type && (
-                      <p className="text-red-500 text-xs mt-1">
-                        {errors.payer_type}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Trading Partner ID
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.trading_partner_id}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          trading_partner_id: e.target.value,
-                        })
-                      }
-                      disabled={modalMode === "view"}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-gray-900"
-                      placeholder="Trading partner identifier"
-                    />
-                  </div>
-
-                  <div className="col-span-2">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Electronic Payer ID{" "}
-                      <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.electronic_payer_id}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          electronic_payer_id: e.target.value,
-                        })
-                      }
-                      disabled={modalMode === "view"}
-                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-gray-900 ${
-                        errors.electronic_payer_id
-                          ? "border-red-500"
-                          : "border-gray-300"
-                      }`}
-                      placeholder="Electronic payer identifier"
-                    />
-                    {errors.electronic_payer_id && (
-                      <p className="text-red-500 text-xs mt-1">
-                        {errors.electronic_payer_id}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Contact & Address Tab */}
-              {activeTab === "contact" && (
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="col-span-2">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Address Line 1
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.address_line1}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          address_line1: e.target.value,
-                        })
-                      }
-                      disabled={modalMode === "view"}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-gray-900"
-                      placeholder="Street address"
-                    />
-                  </div>
-
-                  <div className="col-span-2">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Address Line 2
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.address_line2}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          address_line2: e.target.value,
-                        })
-                      }
-                      disabled={modalMode === "view"}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-gray-900"
-                      placeholder="Apt, suite, etc."
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      City
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.city}
-                      onChange={(e) =>
-                        setFormData({ ...formData, city: e.target.value })
-                      }
-                      disabled={modalMode === "view"}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-gray-900"
-                      placeholder="City"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      State
-                    </label>
-                    <select
-                      value={formData.state}
-                      onChange={(e) =>
-                        setFormData({ ...formData, state: e.target.value })
-                      }
-                      disabled={modalMode === "view"}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-gray-900 bg-white"
-                    >
-                      <option value="">Select state</option>
-                      {states.map((state) => (
-                        <option key={state} value={state}>
-                          {state}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      ZIP Code
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.zip_code}
-                      onChange={(e) =>
-                        setFormData({ ...formData, zip_code: e.target.value })
-                      }
-                      disabled={modalMode === "view"}
-                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-gray-900 ${
-                        errors.zip_code ? "border-red-500" : "border-gray-300"
-                      }`}
-                      placeholder="12345 or 12345-6789"
-                    />
-                    {errors.zip_code && (
-                      <p className="text-red-500 text-xs mt-1">
-                        {errors.zip_code}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Phone
-                    </label>
-                    <input
-                      type="tel"
-                      value={formData.phone}
-                      onChange={(e) =>
-                        setFormData({ ...formData, phone: e.target.value })
-                      }
-                      disabled={modalMode === "view"}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-gray-900"
-                      placeholder="(555) 555-5555"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Fax
-                    </label>
-                    <input
-                      type="tel"
-                      value={formData.fax}
-                      onChange={(e) =>
-                        setFormData({ ...formData, fax: e.target.value })
-                      }
-                      disabled={modalMode === "view"}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-gray-900"
-                      placeholder="(555) 555-5555"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Email
-                    </label>
-                    <input
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) =>
-                        setFormData({ ...formData, email: e.target.value })
-                      }
-                      disabled={modalMode === "view"}
-                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-gray-900 ${
-                        errors.email ? "border-red-500" : "border-gray-300"
-                      }`}
-                      placeholder="email@example.com"
-                    />
-                    {errors.email && (
-                      <p className="text-red-500 text-xs mt-1">
-                        {errors.email}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Transmission/Integration Tab */}
-              {activeTab === "transmission" && (
-                <div className="space-y-6">
-                  <div className="grid grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Transmission Method
-                      </label>
-                      <select
-                        value={formData.transmission_method}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            transmission_method: e.target.value,
-                          })
-                        }
-                        disabled={modalMode === "view"}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-gray-900 bg-white"
-                      >
-                        {transmissionMethods.map((method) => (
-                          <option key={method} value={method}>
-                            {method}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Endpoint URL
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.endpoint_url}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            endpoint_url: e.target.value,
-                          })
-                        }
-                        disabled={modalMode === "view"}
-                        className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-gray-900 ${
-                          errors.endpoint_url
-                            ? "border-red-500"
-                            : "border-gray-300"
-                        }`}
-                        placeholder="https://api.payer.com/endpoint"
-                      />
-                      {errors.endpoint_url && (
-                        <p className="text-red-500 text-xs mt-1">
-                          {errors.endpoint_url}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  {formData.transmission_method === "SFTP" && (
-                    <div className="border-t border-gray-200 pt-6">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                        SFTP Configuration
-                      </h3>
-                      <div className="grid grid-cols-2 gap-6">
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Host
-                          </label>
-                          <input
-                            type="text"
-                            value={sftpConfig.host}
-                            onChange={(e) =>
-                              setSftpConfig({
-                                ...sftpConfig,
-                                host: e.target.value,
-                              })
-                            }
-                            disabled={modalMode === "view"}
-                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-gray-900"
-                            placeholder="sftp.payer.com"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Port
-                          </label>
-                          <input
-                            type="number"
-                            value={sftpConfig.port}
-                            onChange={(e) =>
-                              setSftpConfig({
-                                ...sftpConfig,
-                                port: parseInt(e.target.value),
-                              })
-                            }
-                            disabled={modalMode === "view"}
-                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-gray-900"
-                            placeholder="22"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Username
-                          </label>
-                          <input
-                            type="text"
-                            value={sftpConfig.username}
-                            onChange={(e) =>
-                              setSftpConfig({
-                                ...sftpConfig,
-                                username: e.target.value,
-                              })
-                            }
-                            disabled={modalMode === "view"}
-                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-gray-900"
-                            placeholder="Username"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Password
-                          </label>
-                          <input
-                            type="password"
-                            value={sftpConfig.password}
-                            onChange={(e) =>
-                              setSftpConfig({
-                                ...sftpConfig,
-                                password: e.target.value,
-                              })
-                            }
-                            disabled={modalMode === "view"}
-                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-gray-900"
-                            placeholder="••••••••"
-                          />
-                        </div>
-
-                        <div className="col-span-2">
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Remote Path
-                          </label>
-                          <input
-                            type="text"
-                            value={sftpConfig.remotePath}
-                            onChange={(e) =>
-                              setSftpConfig({
-                                ...sftpConfig,
-                                remotePath: e.target.value,
-                              })
-                            }
-                            disabled={modalMode === "view"}
-                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-gray-900"
-                            placeholder="/inbox"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {modalMode !== "view" && (
-                    <div className="flex items-center gap-3 pt-4 border-t border-gray-200">
-                      <button
-                        onClick={testConnection}
-                        disabled={testingConnection}
-                        className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-all disabled:opacity-50"
-                      >
-                        {testingConnection ? (
-                          <>
-                            <Loader className="animate-spin" size={18} />
-                            Testing Connection...
-                          </>
-                        ) : (
-                          <>
-                            <Wifi size={18} />
-                            Test Connection
-                          </>
-                        )}
-                      </button>
-                      <p className="text-sm text-gray-600">
-                        Verify transmission settings are correct
-                      </p>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Metadata & Audit Tab */}
-              {activeTab === "metadata" && (
-                <div className="space-y-6">
-                  <div className="grid grid-cols-2 gap-6">
-                    <div>
-                      <label className="flex items-center gap-3">
-                        <input
-                          type="checkbox"
-                          checked={formData.is_active}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              is_active: e.target.checked,
-                            })
-                          }
-                          disabled={modalMode === "view"}
-                          className="w-5 h-5 text-teal-600 border-gray-300 rounded focus:ring-teal-500"
-                        />
-                        <span className="text-sm font-semibold text-gray-700">
-                          Active
-                        </span>
-                      </label>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Notes
-                    </label>
-                    <textarea
-                      value={notes}
-                      onChange={(e) => setNotes(e.target.value)}
-                      disabled={modalMode === "view"}
-                      rows={6}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-gray-900"
-                      placeholder="Add internal notes about this payer..."
-                    />
-                  </div>
-
-                  {modalMode !== "add" && selectedPayer && (
-                    <div className="border-t border-gray-200 pt-6">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                        Audit Information
-                      </h3>
-                      <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <span className="font-medium text-gray-700">
-                            Created At:
-                          </span>
-                          <p className="text-gray-600 mt-1">
-                            {new Date(
-                              selectedPayer.created_at
-                            ).toLocaleString()}
-                          </p>
-                        </div>
-                        <div>
-                          <span className="font-medium text-gray-700">
-                            Last Updated:
-                          </span>
-                          <p className="text-gray-600 mt-1">
-                            {new Date(
-                              selectedPayer.updated_at
-                            ).toLocaleString()}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Modal Footer */}
-            {modalMode !== "view" && (
-              <div className="border-t border-gray-200 px-6 py-4 bg-gray-50 flex items-center justify-end gap-3">
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="px-5 py-2.5 border-2 border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-all"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSubmit}
-                  className="px-6 py-2.5 bg-gradient-to-r from-teal-600 to-cyan-700 text-white font-semibold rounded-lg hover:from-teal-700 hover:to-cyan-800 transition-all shadow-md"
-                >
-                  {modalMode === "add" ? "Add Payer" : "Update Payer"}
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 };

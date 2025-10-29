@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   Plus,
@@ -15,12 +16,7 @@ import {
   ChevronRight,
   X,
   Check,
-  AlertCircle,
-  Globe,
-  FileText,
-  MapPin,
-  Settings,
-  Clock,
+  AlertCircle
 } from "lucide-react";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "/api/v1";
@@ -52,16 +48,9 @@ interface TradingPartner {
 }
 
 const TradingPartnerMaster: React.FC = () => {
+  const navigate = useNavigate();
   const [tradingPartners, setTradingPartners] = useState<TradingPartner[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
-  const [modalMode, setModalMode] = useState<"add" | "edit" | "view">("add");
-  const [selectedPartner, setSelectedPartner] = useState<TradingPartner | null>(
-    null
-  );
-  const [activeTab, setActiveTab] = useState<
-    "general" | "connection" | "edi" | "notes"
-  >("general");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [sortField, setSortField] = useState<string>("partner_name");
@@ -79,28 +68,6 @@ const TradingPartnerMaster: React.FC = () => {
     channelType: "",
     status: "",
   });
-
-  // Form states
-  const [formData, setFormData] = useState<Partial<TradingPartner>>({
-    trading_partner_id: "",
-    partner_name: "",
-    partner_type: "Sender",
-    sender_qualifier: "",
-    sender_id: "",
-    receiver_qualifier: "",
-    receiver_id: "",
-    direction: "Inbound",
-    channel_type: "SFTP",
-    endpoint_url: "",
-    edi_version: "5010",
-    test_mode: false,
-    status: "Active",
-    effective_from: new Date().toISOString().split("T")[0],
-    effective_to: "",
-    notes: "",
-  });
-
-  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     fetchTradingPartners();
@@ -149,96 +116,16 @@ const TradingPartnerMaster: React.FC = () => {
     }
   };
 
-  const openAddModal = () => {
-    setModalMode("add");
-    setFormData({
-      trading_partner_id: "",
-      partner_name: "",
-      partner_type: "Sender",
-      sender_qualifier: "",
-      sender_id: "",
-      receiver_qualifier: "",
-      receiver_id: "",
-      direction: "Inbound",
-      channel_type: "SFTP",
-      endpoint_url: "",
-      edi_version: "5010",
-      test_mode: false,
-      status: "Active",
-      effective_from: new Date().toISOString().split("T")[0],
-      effective_to: "",
-      notes: "",
-    });
-    setErrors({});
-    setActiveTab("general");
-    setShowModal(true);
+  const handleAddNew = () => {
+    navigate("/trading-partners/add");
   };
 
-  const openEditModal = (partner: TradingPartner) => {
-    setModalMode("edit");
-    setSelectedPartner(partner);
-    setFormData(partner);
-    setActiveTab("general");
-    setShowModal(true);
+  const handleView = (partner: TradingPartner) => {
+    navigate(`/trading-partners/view/${partner.trading_partner_id}`);
   };
 
-  const openViewModal = (partner: TradingPartner) => {
-    setModalMode("view");
-    setSelectedPartner(partner);
-    setFormData(partner);
-    setActiveTab("general");
-    setShowModal(true);
-  };
-
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {};
-
-    if (!formData.trading_partner_id?.trim())
-      newErrors.trading_partner_id = "Trading Partner ID is required";
-    if (!formData.partner_name?.trim())
-      newErrors.partner_name = "Partner name is required";
-    if (!formData.sender_id?.trim())
-      newErrors.sender_id = "Sender ID is required";
-    if (!formData.receiver_id?.trim())
-      newErrors.receiver_id = "Receiver ID is required";
-    if (!formData.endpoint_url?.trim())
-      newErrors.endpoint_url = "Endpoint URL is required";
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async () => {
-    if (!validateForm()) {
-      showToast("error", "Please fix validation errors");
-      return;
-    }
-
-    try {
-      const token = localStorage.getItem("token");
-      const payload = formData;
-
-      if (modalMode === "add") {
-        await axios.post(`${API_BASE}/trading-partners`, payload, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        showToast("success", "Trading partner added successfully");
-      } else if (modalMode === "edit") {
-        await axios.put(
-          `${API_BASE}/trading-partners/${selectedPartner?.trading_partner_id}`,
-          payload,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-        showToast("success", "Trading partner updated successfully");
-      }
-
-      setShowModal(false);
-      fetchTradingPartners();
-    } catch (error: any) {
-      showToast("error", error.response?.data?.error || "Operation failed");
-    }
+  const handleEdit = (partner: TradingPartner) => {
+    navigate(`/trading-partners/edit/${partner.trading_partner_id}`);
   };
 
   const handleDelete = async (partnerId: string) => {
@@ -357,7 +244,7 @@ const TradingPartnerMaster: React.FC = () => {
               Refresh
             </button>
             <button
-              onClick={openAddModal}
+              onClick={handleAddNew}
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-purple-700 text-white font-semibold rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all shadow-md hover:shadow-lg"
             >
               <Plus size={20} />
@@ -494,7 +381,7 @@ const TradingPartnerMaster: React.FC = () => {
               Get started by adding your first trading partner
             </p>
             <button
-              onClick={openAddModal}
+              onClick={handleAddNew}
               className="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition-all"
             >
               <Plus size={18} />
@@ -581,14 +468,14 @@ const TradingPartnerMaster: React.FC = () => {
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
                           <button
-                            onClick={() => openViewModal(partner)}
+                            onClick={() => handleView(partner)}
                             className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
                             title="View"
                           >
                             <Eye size={18} />
                           </button>
                           <button
-                            onClick={() => openEditModal(partner)}
+                            onClick={() => handleEdit(partner)}
                             className="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors"
                             title="Edit"
                           >
@@ -644,486 +531,7 @@ const TradingPartnerMaster: React.FC = () => {
         )}
       </div>
 
-      {/* Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
-            {/* Modal Header */}
-            <div className="bg-gradient-to-r from-purple-600 to-purple-700 px-6 py-4 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-white">
-                {modalMode === "add"
-                  ? "Add New Trading Partner"
-                  : modalMode === "edit"
-                  ? "Edit Trading Partner"
-                  : "View Trading Partner"}
-              </h2>
-              <button
-                onClick={() => setShowModal(false)}
-                className="text-white hover:bg-white hover:bg-opacity-20 rounded-lg p-2 transition-colors"
-              >
-                <X size={24} />
-              </button>
-            </div>
 
-            {/* Tabs */}
-            <div className="border-b border-gray-200 bg-gray-50">
-              <nav className="flex">
-                {[
-                  { key: "general", label: "General Info", icon: FileText },
-                  { key: "connection", label: "Connection", icon: Globe },
-                  { key: "edi", label: "EDI Config", icon: Settings },
-                  { key: "notes", label: "Notes & Audit", icon: Clock },
-                ].map((tab) => {
-                  const Icon = tab.icon;
-                  return (
-                    <button
-                      key={tab.key}
-                      onClick={() => setActiveTab(tab.key as any)}
-                      className={`flex items-center gap-2 px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
-                        activeTab === tab.key
-                          ? "border-purple-600 text-purple-600 bg-white"
-                          : "border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                      }`}
-                    >
-                      <Icon size={18} />
-                      {tab.label}
-                    </button>
-                  );
-                })}
-              </nav>
-            </div>
-
-            {/* Modal Content */}
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
-              {/* General Info Tab */}
-              {activeTab === "general" && (
-                <div className="grid grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Trading Partner ID <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.trading_partner_id}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          trading_partner_id: e.target.value,
-                        })
-                      }
-                      disabled={modalMode !== "add"}
-                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 ${
-                        errors.trading_partner_id
-                          ? "border-red-500"
-                          : "border-gray-300"
-                      } ${modalMode !== "add" ? "bg-gray-100" : ""}`}
-                      placeholder="e.g., TP0001"
-                    />
-                    {errors.trading_partner_id && (
-                      <p className="text-red-500 text-xs mt-1">
-                        {errors.trading_partner_id}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Partner Name <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.partner_name}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          partner_name: e.target.value,
-                        })
-                      }
-                      disabled={modalMode === "view"}
-                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 ${
-                        errors.partner_name
-                          ? "border-red-500"
-                          : "border-gray-300"
-                      }`}
-                      placeholder="Partner organization name"
-                    />
-                    {errors.partner_name && (
-                      <p className="text-red-500 text-xs mt-1">
-                        {errors.partner_name}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Partner Type
-                    </label>
-                    <select
-                      value={formData.partner_type}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          partner_type: e.target.value as any,
-                        })
-                      }
-                      disabled={modalMode === "view"}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 bg-white"
-                    >
-                      {partnerTypes.map((type) => (
-                        <option key={type} value={type}>
-                          {type}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Direction
-                    </label>
-                    <select
-                      value={formData.direction}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          direction: e.target.value as any,
-                        })
-                      }
-                      disabled={modalMode === "view"}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 bg-white"
-                    >
-                      {directions.map((dir) => (
-                        <option key={dir} value={dir}>
-                          {dir}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Sender Qualifier <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.sender_qualifier}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          sender_qualifier: e.target.value,
-                        })
-                      }
-                      disabled={modalMode === "view"}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900"
-                      placeholder="e.g., ZZ, 30"
-                      maxLength={2}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Sender ID <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.sender_id}
-                      onChange={(e) =>
-                        setFormData({ ...formData, sender_id: e.target.value })
-                      }
-                      disabled={modalMode === "view"}
-                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 ${
-                        errors.sender_id ? "border-red-500" : "border-gray-300"
-                      }`}
-                      placeholder="Sender identifier"
-                    />
-                    {errors.sender_id && (
-                      <p className="text-red-500 text-xs mt-1">
-                        {errors.sender_id}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Receiver Qualifier <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.receiver_qualifier}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          receiver_qualifier: e.target.value,
-                        })
-                      }
-                      disabled={modalMode === "view"}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900"
-                      placeholder="e.g., ZZ, 30"
-                      maxLength={2}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Receiver ID <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.receiver_id}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          receiver_id: e.target.value,
-                        })
-                      }
-                      disabled={modalMode === "view"}
-                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 ${
-                        errors.receiver_id
-                          ? "border-red-500"
-                          : "border-gray-300"
-                      }`}
-                      placeholder="Receiver identifier"
-                    />
-                    {errors.receiver_id && (
-                      <p className="text-red-500 text-xs mt-1">
-                        {errors.receiver_id}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Status
-                    </label>
-                    <select
-                      value={formData.status}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          status: e.target.value as any,
-                        })
-                      }
-                      disabled={modalMode === "view"}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 bg-white"
-                    >
-                      {statuses.map((status) => (
-                        <option key={status} value={status}>
-                          {status}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      <input
-                        type="checkbox"
-                        checked={formData.test_mode}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            test_mode: e.target.checked,
-                          })
-                        }
-                        disabled={modalMode === "view"}
-                        className="mr-2"
-                      />
-                      Test Mode
-                    </label>
-                  </div>
-                </div>
-              )}
-
-              {/* Connection Tab */}
-              {activeTab === "connection" && (
-                <div className="grid grid-cols-1 gap-6">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Channel Type
-                    </label>
-                    <select
-                      value={formData.channel_type}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          channel_type: e.target.value as any,
-                        })
-                      }
-                      disabled={modalMode === "view"}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 bg-white"
-                    >
-                      {channelTypes.map((channel) => (
-                        <option key={channel} value={channel}>
-                          {channel}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Endpoint URL <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.endpoint_url}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          endpoint_url: e.target.value,
-                        })
-                      }
-                      disabled={modalMode === "view"}
-                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 ${
-                        errors.endpoint_url
-                          ? "border-red-500"
-                          : "border-gray-300"
-                      }`}
-                      placeholder="https://api.example.com or sftp://server.com/path"
-                    />
-                    {errors.endpoint_url && (
-                      <p className="text-red-500 text-xs mt-1">
-                        {errors.endpoint_url}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* EDI Config Tab */}
-              {activeTab === "edi" && (
-                <div className="grid grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      EDI Version
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.edi_version}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          edi_version: e.target.value,
-                        })
-                      }
-                      disabled={modalMode === "view"}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900"
-                      placeholder="5010"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Effective From
-                    </label>
-                    <input
-                      type="date"
-                      value={formData.effective_from}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          effective_from: e.target.value,
-                        })
-                      }
-                      disabled={modalMode === "view"}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900"
-                    />
-                  </div>
-
-                  <div className="col-span-2">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Effective To
-                    </label>
-                    <input
-                      type="date"
-                      value={formData.effective_to}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          effective_to: e.target.value,
-                        })
-                      }
-                      disabled={modalMode === "view"}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Notes & Audit Tab */}
-              {activeTab === "notes" && (
-                <div>
-                  <div className="mb-6">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Notes
-                    </label>
-                    <textarea
-                      value={formData.notes}
-                      onChange={(e) =>
-                        setFormData({ ...formData, notes: e.target.value })
-                      }
-                      disabled={modalMode === "view"}
-                      rows={8}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900"
-                      placeholder="Add notes about this trading partner..."
-                    />
-                  </div>
-
-                  {modalMode !== "add" && selectedPartner && (
-                    <div className="border-t border-gray-200 pt-6">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                        Audit Information
-                      </h3>
-                      <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <span className="font-medium text-gray-700">
-                            Created At:
-                          </span>
-                          <p className="text-gray-600 mt-1">
-                            {new Date(
-                              selectedPartner.created_at
-                            ).toLocaleString()}
-                          </p>
-                        </div>
-                        <div>
-                          <span className="font-medium text-gray-700">
-                            Last Updated:
-                          </span>
-                          <p className="text-gray-600 mt-1">
-                            {new Date(
-                              selectedPartner.updated_at
-                            ).toLocaleString()}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Modal Footer */}
-            {modalMode !== "view" && (
-              <div className="border-t border-gray-200 px-6 py-4 bg-gray-50 flex items-center justify-end gap-3">
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="px-5 py-2.5 border-2 border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-all"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSubmit}
-                  className="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-purple-700 text-white font-semibold rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all shadow-md"
-                >
-                  {modalMode === "add"
-                    ? "Add Trading Partner"
-                    : "Update Trading Partner"}
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 };

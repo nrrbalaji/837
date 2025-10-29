@@ -74,11 +74,7 @@ const FacilityMultiSelect: React.FC<FacilityMultiSelectProps> = ({
     onChange(selectedFacilities.filter((id) => id !== facilityId));
   };
 
-  const getSelectedFacilityNames = () => {
-    return availableFacilities
-      .filter((f) => selectedFacilities.includes(f.facility_id))
-      .map((f) => f.facility_name);
-  };
+
 
   const selectedCount = selectedFacilities.length;
 

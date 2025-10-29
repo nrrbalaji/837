@@ -33,8 +33,8 @@ export interface CorrectionRule {
   rule_code: string;
   rule_name: string;
   validation_rule_id: string;
-  correction_type: 'LOOKUP' | 'CALCULATION' | 'DEFAULT_VALUE' | 'AI_ASSISTED' | 'FORMAT';
-  correction_source_type?: 'MASTER_LOOKUP' | 'STATIC' | 'FORMAT' | 'API';
+  correction_type: 'MASTER_LOOKUP' | 'STATIC_VALUE' | 'FORMAT_CORRECTION' | 'FIELD_COPY' | 'MAPPING_TABLE' | 'CALCULATION' | 'PREPEND_APPEND' | 'AI_ASSISTED_SUGGESTION' | 'REMOVE_INVALID_SEGMENT' | 'CLEAN_UP';
+  correction_source_type?: 'MASTER_PROVIDER' | 'MASTER_FACILITY' | 'MASTER_PAYER' | 'MASTER_TRADING_PARTNER' | 'MASTER_GENERIC_LOOKUP' | 'STATIC' | 'FORMAT_RULE' | 'SQL_MAPPING_LOOKUP' | 'FIELD_REFERENCE' | 'AI_SUGGESTION';
   correction_logic?: Record<string, any>;
   lookup_table?: string;
   lookup_column?: string;

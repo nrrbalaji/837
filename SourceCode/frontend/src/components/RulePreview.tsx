@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { ValidationRule, CorrectionRule } from '../types/rules';
-import { Eye, CheckCircle, AlertCircle, Wrench, Info } from 'lucide-react';
+import { Eye, CheckCircle, Wrench, Info } from 'lucide-react';
 
 interface RulePreviewProps {
   validationRule: ValidationRule;
@@ -29,10 +29,16 @@ const RulePreview: React.FC<RulePreviewProps> = ({
     if (!correctionRule) return null;
 
     const sourceMap: Record<string, string> = {
-      MASTER_LOOKUP: `master table ${correctionRule.lookup_table}`,
+      MASTER_PROVIDER: `master provider table ${correctionRule.lookup_table}`,
+      MASTER_FACILITY: `master facility table ${correctionRule.lookup_table}`,
+      MASTER_PAYER: `master payer table ${correctionRule.lookup_table}`,
+      MASTER_TRADING_PARTNER: `master trading partner table ${correctionRule.lookup_table}`,
+      MASTER_GENERIC_LOOKUP: `master generic lookup table ${correctionRule.lookup_table}`,
       STATIC: `static value "${correctionRule.default_value}"`,
-      FORMAT: 'format transformation',
-      API: 'external API',
+      FORMAT_RULE: 'format transformation',
+      SQL_MAPPING_LOOKUP: 'SQL mapping lookup',
+      FIELD_REFERENCE: 'field reference',
+      AI_SUGGESTION: 'AI suggestion',
     };
 
     return `Auto-correct using ${sourceMap[correctionRule.correction_source_type || ''] || 'configured source'}`;
@@ -164,7 +170,7 @@ const RulePreview: React.FC<RulePreviewProps> = ({
                 </p>
               </div>
 
-              {correctionRule.correction_source_type === 'MASTER_LOOKUP' && (
+              {['MASTER_PROVIDER', 'MASTER_FACILITY', 'MASTER_PAYER', 'MASTER_TRADING_PARTNER', 'MASTER_GENERIC_LOOKUP'].includes(correctionRule.correction_source_type || '') && (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-xs font-medium text-gray-500 uppercase mb-1">Lookup Table</p>

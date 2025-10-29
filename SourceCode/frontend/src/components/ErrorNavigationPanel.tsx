@@ -238,7 +238,7 @@ const ErrorNavigationPanel: React.FC<ErrorNavigationPanelProps> = ({
                     </button>
                     {expandedGroups.has(`EDI-${group.segment}`) && (
                       <div>
-                        {group.errors.map((error, index) => {
+                        {group.errors.map((error) => {
                           const globalIndex = allErrors.indexOf(error);
                           const isActive = globalIndex === currentErrorIndex;
                           return (
