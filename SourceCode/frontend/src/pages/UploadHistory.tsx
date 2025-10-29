@@ -16,8 +16,7 @@ import {
   GitBranch,
 } from "lucide-react";
 
-const API_BASE =
-  import.meta.env.VITE_API_BASE_URL || "http://10.1.9.210:3000/api/v1";
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "/api/v1";
 
 interface UploadedFile {
   file_id: string;
