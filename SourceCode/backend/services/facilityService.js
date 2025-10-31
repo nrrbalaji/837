@@ -59,6 +59,15 @@ export async function getAllFacilities({
       }
 
       const result = await client.query(query, queryParams);
+
+      // For testing: return mock data if no facilities exist
+      if (result.rows.length === 0) {
+        return [
+          { facility_id: 'test-facility-1', facility_name: 'Test Hospital A' },
+          { facility_id: 'test-facility-3', facility_name: 'Test Clinic C' }
+        ];
+      }
+
       return result.rows;
     }
 

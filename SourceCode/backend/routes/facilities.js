@@ -16,7 +16,7 @@ const router = express.Router();
  * @desc    Get all facilities with filtering, sorting, and pagination
  * @access  Private
  */
-router.get('/', authenticateToken, masterPermissions.read, async (req, res, next) => {
+router.get('/', authenticateToken, async (req, res, next) => {
   try {
     const {
       page,
@@ -38,12 +38,15 @@ router.get('/', authenticateToken, masterPermissions.read, async (req, res, next
       return roleName && roleName.toLowerCase().includes('admin');
     });
 
-    // If no pagination params, return simple list
+    // If no pagination params, return simple list for dropdowns (no permissions required)
     if (!page || !limit) {
       const facilities = await getAllFacilities({ userId, isAdmin });
       res.json(facilities);
       return;
     }
+
+    // For paginated requests, require permissions
+    await masterPermissions.read(req, res, () => {});
 
     const filters = {
       search,

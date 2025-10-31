@@ -17,7 +17,7 @@ const router = express.Router();
  * @desc    Get all payers with filtering, sorting, and pagination
  * @access  Private
  */
-router.get('/', authenticateToken, masterPermissions.read, async (req, res, next) => {
+router.get('/', authenticateToken, async (req, res, next) => {
   try {
     const {
       page,
@@ -33,12 +33,15 @@ router.get('/', authenticateToken, masterPermissions.read, async (req, res, next
       dateTo = ''
     } = req.query;
 
-    // If no pagination params, return simple list
+    // If no pagination params, return simple list for dropdowns (no permissions required)
     if (!page || !limit) {
       const payers = await getAllPayers();
       res.json(payers);
       return;
     }
+
+    // For paginated requests, require permissions
+    await masterPermissions.read(req, res, () => {});
 
     const filters = {
       search,

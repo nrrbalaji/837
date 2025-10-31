@@ -42,7 +42,8 @@ export const schemas = {
       page: z.string().regex(/^\d+$/).transform(Number).optional().default('1'),
       limit: z.string().regex(/^\d+$/).transform(Number).optional().default('10'),
       sortBy: z.string().optional(),
-      sortOrder: z.enum(['asc', 'desc']).optional().default('desc')
+      sortOrder: z.enum(['asc', 'desc']).optional().default('desc'),
+      search: z.string().optional()
     })
   }),
 

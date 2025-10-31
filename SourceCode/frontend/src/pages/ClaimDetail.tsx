@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import axios from 'axios'
-import { AlertCircle } from 'lucide-react'
+import { AlertCircle, ChevronLeft } from 'lucide-react'
 
 export default function ClaimDetail() {
   const { id } = useParams()
+  const navigate = useNavigate()
   const [claim, setClaim] = useState<any>(null)
   const [validations, setValidations] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -68,6 +69,12 @@ export default function ClaimDetail() {
 
   return (
     <div className="space-y-6">
+      {/* Back Button */}
+      <div className="flex items-center gap-2 text-gray-600 hover:text-gray-900 cursor-pointer" onClick={() => navigate('/claims')}>
+        <ChevronLeft size={20} />
+        Back to Claims
+      </div>
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-gray-900">

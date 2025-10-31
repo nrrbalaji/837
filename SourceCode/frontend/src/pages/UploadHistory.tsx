@@ -10,6 +10,8 @@ import {
   History,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
+  ChevronDown,
   Upload,
   RefreshCw,
   Eye,
@@ -37,6 +39,8 @@ const UploadHistory: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [sortColumn, setSortColumn] = useState<string>("uploaded_at");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
   useEffect(() => {
     fetchUploadHistory();
@@ -112,6 +116,53 @@ const UploadHistory: React.FC = () => {
       "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border";
     return `${baseClass} ${getStatusColor(status)}`;
   };
+
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortColumn(column);
+      setSortDirection("asc");
+    }
+  };
+
+  const sortedFiles = [...files].sort((a, b) => {
+    let aValue: any;
+    let bValue: any;
+
+    switch (sortColumn) {
+      case "file_name":
+        aValue = a.file_name.toLowerCase();
+        bValue = b.file_name.toLowerCase();
+        break;
+      case "upload_status":
+        aValue = a.upload_status.toLowerCase();
+        bValue = b.upload_status.toLowerCase();
+        break;
+      case "file_size_bytes":
+        aValue = a.file_size_bytes;
+        bValue = b.file_size_bytes;
+        break;
+      case "claims":
+        aValue = a.parsing_summary?.totalClaims || 0;
+        bValue = b.parsing_summary?.totalClaims || 0;
+        break;
+      case "uploaded_at":
+        aValue = new Date(a.uploaded_at).getTime();
+        bValue = new Date(b.uploaded_at).getTime();
+        break;
+      case "uploaded_by_username":
+        aValue = (a.uploaded_by_username || "").toLowerCase();
+        bValue = (b.uploaded_by_username || "").toLowerCase();
+        break;
+      default:
+        return 0;
+    }
+
+    if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
+    if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
+    return 0;
+  });
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -248,23 +299,95 @@ const UploadHistory: React.FC = () => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      File Name
+                    <th
+                      className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                      onClick={() => handleSort("file_name")}
+                    >
+                      <div className="flex items-center gap-1">
+                        File Name
+                        {sortColumn === "file_name" && (
+                          sortDirection === "asc" ? (
+                            <ChevronUp size={14} />
+                          ) : (
+                            <ChevronDown size={14} />
+                          )
+                        )}
+                      </div>
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      Status
+                    <th
+                      className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                      onClick={() => handleSort("upload_status")}
+                    >
+                      <div className="flex items-center gap-1">
+                        Status
+                        {sortColumn === "upload_status" && (
+                          sortDirection === "asc" ? (
+                            <ChevronUp size={14} />
+                          ) : (
+                            <ChevronDown size={14} />
+                          )
+                        )}
+                      </div>
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      Size
+                    <th
+                      className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                      onClick={() => handleSort("file_size_bytes")}
+                    >
+                      <div className="flex items-center gap-1">
+                        Size
+                        {sortColumn === "file_size_bytes" && (
+                          sortDirection === "asc" ? (
+                            <ChevronUp size={14} />
+                          ) : (
+                            <ChevronDown size={14} />
+                          )
+                        )}
+                      </div>
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      Claims
+                    <th
+                      className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                      onClick={() => handleSort("claims")}
+                    >
+                      <div className="flex items-center gap-1">
+                        Claims
+                        {sortColumn === "claims" && (
+                          sortDirection === "asc" ? (
+                            <ChevronUp size={14} />
+                          ) : (
+                            <ChevronDown size={14} />
+                          )
+                        )}
+                      </div>
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      Uploaded
+                    <th
+                      className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                      onClick={() => handleSort("uploaded_at")}
+                    >
+                      <div className="flex items-center gap-1">
+                        Uploaded
+                        {sortColumn === "uploaded_at" && (
+                          sortDirection === "asc" ? (
+                            <ChevronUp size={14} />
+                          ) : (
+                            <ChevronDown size={14} />
+                          )
+                        )}
+                      </div>
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      Uploaded By
+                    <th
+                      className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                      onClick={() => handleSort("uploaded_by_username")}
+                    >
+                      <div className="flex items-center gap-1">
+                        Uploaded By
+                        {sortColumn === "uploaded_by_username" && (
+                          sortDirection === "asc" ? (
+                            <ChevronUp size={14} />
+                          ) : (
+                            <ChevronDown size={14} />
+                          )
+                        )}
+                      </div>
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                       Actions
@@ -272,7 +395,7 @@ const UploadHistory: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {files.map((file) => (
+                  {sortedFiles.map((file) => (
                     <tr
                       key={file.file_id}
                       className="hover:bg-gray-50 transition-colors"

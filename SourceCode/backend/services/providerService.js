@@ -18,31 +18,31 @@ export async function getAllProviders({ page, limit, sortField, sortOrder, filte
     let paramCount = 1;
 
     if (filters.providerName) {
-      whereClauses.push(`(first_name ILIKE $${paramCount} OR last_name ILIKE $${paramCount})`);
+      whereClauses.push(`(p.first_name ILIKE $${paramCount} OR p.last_name ILIKE $${paramCount})`);
       queryParams.push(`%${filters.providerName}%`);
       paramCount++;
     }
 
     if (filters.npi) {
-      whereClauses.push(`npi ILIKE $${paramCount}`);
+      whereClauses.push(`p.npi ILIKE $${paramCount}`);
       queryParams.push(`%${filters.npi}%`);
       paramCount++;
     }
 
     if (filters.taxId) {
-      whereClauses.push(`license_number ILIKE $${paramCount}`);
+      whereClauses.push(`p.license_number ILIKE $${paramCount}`);
       queryParams.push(`%${filters.taxId}%`);
       paramCount++;
     }
 
     if (filters.facilityType) {
-      whereClauses.push(`specialty = $${paramCount}`);
+      whereClauses.push(`p.specialty = $${paramCount}`);
       queryParams.push(filters.facilityType);
       paramCount++;
     }
 
     if (filters.status !== null) {
-      whereClauses.push(`is_active = $${paramCount}`);
+      whereClauses.push(`p.is_active = $${paramCount}`);
       queryParams.push(filters.status);
       paramCount++;
     }
@@ -50,7 +50,7 @@ export async function getAllProviders({ page, limit, sortField, sortOrder, filte
     const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
 
     // Get total count
-    const countQuery = `SELECT COUNT(*) FROM Provider ${whereClause}`;
+    const countQuery = `SELECT COUNT(*) FROM Provider p LEFT JOIN Facilities f ON p.facility_id = f.facility_id ${whereClause}`;
     const countResult = await client.query(countQuery, queryParams);
     const totalCount = parseInt(countResult.rows[0].count);
 
@@ -80,7 +80,7 @@ export async function getAllProviders({ page, limit, sortField, sortOrder, filte
       FROM Provider p
       LEFT JOIN Facilities f ON p.facility_id = f.facility_id
       ${whereClause}
-      ORDER BY ${orderByField} ${orderByDirection}
+      ORDER BY p.${orderByField} ${orderByDirection}
       LIMIT $${paramCount} OFFSET $${paramCount + 1}
     `;
 
